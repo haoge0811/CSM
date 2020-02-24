@@ -177,3 +177,33 @@ for t_step in range(t_tot):
 
         each_gate.simulate(all_nets)
 '''
+
+
+
+# use a config file reader, that can read any config file, the proper way.
+#take config_dir as input to main
+#TODO: use a file IO and read which ever config file is the way to go
+config_file = open(config_dir, "r")
+
+verilog_netlist_dir = None
+
+
+
+for line in config_file:
+    if (line[0] != "#"):
+        if "verilog_netlist_dir" in line:
+            verilog_netlist_dir = line.split()[-1] # title, "=", value
+        elif "NAND2_LUT_dir" in line:
+            NAND2_LUT_dir = line.split()[-1] # title, "=", value
+        elif "verilog_netlist_dir" in line:
+            verilog_netlist_dir = line.split()[-1] # title, "=", value
+        elif "verilog_netlist_dir" in line:
+            verilog_netlist_dir = line.split()[-1] # title, "=", value
+
+
+
+
+
+
+
+

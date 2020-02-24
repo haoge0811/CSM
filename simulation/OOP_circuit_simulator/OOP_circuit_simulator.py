@@ -2,6 +2,7 @@
 
 import re
 from classes import *
+from config import *
 
 def create_net_instance(list_of_net): # create_net_instance from list of net names to be created
     for each_item in list_of_net:
@@ -11,12 +12,12 @@ def create_net_instance(list_of_net): # create_net_instance from list of net nam
 
 #def the_creator(verlog_netlist_dir): # this function create all instances that is going to be used for simulation.
 
-NAND2_LUT = load_LUT("../../LUT_bin/FINFET_7nm_LSTP_NAND2_VL-0.14_VH0.84_VSTEP0.05_P1.0_V0.7_T25.0.lut")
+#NAND2_LUT = load_LUT("../../LUT_bin/FINFET_7nm_LSTP_NAND2_VL-0.14_VH0.84_VSTEP0.05_P1.0_V0.7_T25.0.lut")
+NAND2_LUT = load_LUT(NAND2_LUT_dir)
 
-verlog_netlist_dir = "./c17.v"
-
+#verilog_netlist_dir = "./c17.v"
 # open verilog netlist to read
-netlist_file = open(verlog_netlist_dir, "r")
+netlist_file = open(verilog_netlist_dir, "r")
 nets_dict = dict()
 gates_dict = dict()
 for line in netlist_file:
@@ -106,24 +107,25 @@ for each_gate in gates_dict.keys():
 #print CL
 # does not seem to work. add cap load to all output nets, this fix the problem for CSM simulator not stable
 for each_net in output_nodes:
-    nets_dict[each_net].extra_cap_load = 1e-16
+    #nets_dict[each_net].extra_cap_load = 1e-16
+    nets_dict[each_net].extra_cap_load = final_output_load[each_net]
 #CL = nets_dict["N22"].sum_CL()
 #print CL
 
 # extra setting, save voltage to file
-save_file = open("./voltage_save.csv", "w")
+#save_file = open("./voltage_save.csv", "w")
 
 # let's get on with the actual simulation
-t_tot = 300e-12
-t_step = 0.01e-12
+#t_tot = 300e-12
+#t_step = 0.01e-12
 
 # remember to get signal to PI
-PI_signal_dict = {
-    "N1":Signal(mode = "constant", constant=0.7),
-    "N2":Signal(mode = "constant", constant=0.0),
-    "N3":Signal(mode = "constant", constant=0.7),
-    "N6":Signal(mode = "constant", constant=0.0),
-    "N7":Signal(mode="ramp_lh", param={"vdd": 0.7, "t_0": 5e-12, "t_lh": 50e-12})}
+#PI_signal_dict = {
+#    "N1":Signal(mode = "constant", constant=0.7),
+#    "N2":Signal(mode = "constant", constant=0.0),
+#    "N3":Signal(mode = "constant", constant=0.7),
+#    "N6":Signal(mode = "constant", constant=0.0),
+#    "N7":Signal(mode="ramp_lh", param={"vdd": 0.7, "t_0": 5e-12, "t_lh": 50e-12})}
 
 #N22 stay at 1
 #N23 will go up
@@ -161,8 +163,16 @@ print "initial conditions:"
 for each_net in (circuit_internal_nodes + output_nodes):  # all other nodes
     print each_net +": " + str(nets_dict[each_net].voltage)
 
+save_file = open(save_file_dir, "w")
+# write heading
+save_file.write("# time")
+for each_net in voltage_nodes_to_save:
+    save_file.write(" " + each_net)
+save_file.write("\n")
+# write heading ends
 
 # actual simulation
+print "simulating..."
 for step_number in range(int(t_tot / t_step)):
     t = step_number * t_step
     t_ps = t * 1e12  # just for readability
@@ -178,7 +188,10 @@ for step_number in range(int(t_tot / t_step)):
 
 
     # extra save voltage
-    save_file.write(str(t) +","+ str(nets_dict["N22"].voltage) +","+ str(nets_dict["N23"].voltage)+"\n")
+    save_file.write(str(t))
+    for each_net in voltage_nodes_to_save:
+        save_file.write(","+ str(nets_dict[each_net].voltage))
+    save_file.write("\n")
 
 save_file.close()
 
