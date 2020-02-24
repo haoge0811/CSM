@@ -1,17 +1,7 @@
 # Author: haoge <haoge@usc.edu> at USC SPORT Lab
-'''
-for t_step in range(t_tot):
-    for each_gate in all_gate_list:
-        #do simulation
 
-        each_gate.simulate(all_nets)
-'''
 import re
 from classes import *
-
-
-
-
 
 def create_net_instance(list_of_net): # create_net_instance from list of net names to be created
     for each_item in list_of_net:
@@ -105,15 +95,11 @@ for each_gate in gates_dict.keys():
     level_list[this_gate_level].append(gates_dict[each_gate].name) # put gates name in corresponding list
 # levelization recording end
 
-# below is gold
+# below is gold, pre-simulate Cin loaing iteration
 # run all gates at 0 time just to get cap_load value on nets populated.
 for each_gate in gates_dict.keys():
     gates_dict[each_gate].simulate(just_update_CI=True)
 # above is gold
-
-
-
-
 
 
 #CL = nets_dict["N22"].sum_CL()
@@ -137,14 +123,51 @@ PI_signal_dict = {
     "N2":Signal(mode = "constant", constant=0.0),
     "N3":Signal(mode = "constant", constant=0.7),
     "N6":Signal(mode = "constant", constant=0.0),
-    "N7":Signal(mode = "constant", constant=0.0)}
-# N22 will go up
+    "N7":Signal(mode="ramp_lh", param={"vdd": 0.7, "t_0": 5e-12, "t_lh": 50e-12})}
 
+#N22 stay at 1
+#N23 will go up
+
+# same way as CL pre-load, we can figure out the initial condition, by pre-simulaing the circuit before time 0, to wait until every
+# voltage nodes settles.
+# here we can add a configurable setup. if user degined initial condition in config file, we use that way. otherwise,
+# pre-simulate and find out initial condition ourself
+initial_voltage_settle_threshold = 0.00001/0.01e-12 # change < 0.00001 in 0.01 ps
+print "finding initial conditions..."
+all_nets_settled = False
+while (all_nets_settled == False):
+    #print "finding initial conditions..."
+    all_nets_settled = True
+    for level in range(len(level_list)):  # simulate circuit level by level, from PI to output
+        if level == 0:  # For Primary inputs
+            for each_PI in level_list[level]:
+                nets_dict[each_PI].update_voltage(PI_signal_dict[each_PI].get_val(0))  # use the PI value at time 0
+        else:
+            for each_gate in level_list[level]:
+                gates_dict[each_gate].simulate(t_step)  # simulate the gate for this time step
+    # TODO: this may not be the best orgnization todo this, check later
+    # after simulation, check if all nets besides PI have settled
+    for each_net in (circuit_internal_nodes + output_nodes):  # all other nodes
+        dV_of_this_net = nets_dict[each_net].voltage - nets_dict[each_net].voltage_just_now
+        slope = dV_of_this_net/t_step
+        #print slope
+        #print "th: " + str(initial_voltage_settle_threshold)
+        if (slope > initial_voltage_settle_threshold):
+            all_nets_settled = False
+    #print all_nets_settled
+
+# print initial conditions
+print "initial conditions:"
+for each_net in (circuit_internal_nodes + output_nodes):  # all other nodes
+    print each_net +": " + str(nets_dict[each_net].voltage)
+
+
+# actual simulation
 for step_number in range(int(t_tot / t_step)):
     t = step_number * t_step
     t_ps = t * 1e12  # just for readability
 
-    print "simulating for t = " +str(t_ps) + "ps"
+    #print "simulating for t = " +str(t_ps) + "ps"
     for level in range(len(level_list)): # simulate circuit level by level, from PI to output
         if level == 0: # For Primary inputs
             for each_PI in level_list[level]:
@@ -155,6 +178,11 @@ for step_number in range(int(t_tot / t_step)):
 
 
     # extra save voltage
-    save_file.write(str(t) +","+ str(nets_dict["N22"].voltage) +","+ str(nets_dict["N22"].voltage)+"\n")
+    save_file.write(str(t) +","+ str(nets_dict["N22"].voltage) +","+ str(nets_dict["N23"].voltage)+"\n")
 
 save_file.close()
+
+# once this works, consider putting all settings in a config file, much like spice style
+
+
+#N16 =1, N19 = 1, N23 =0

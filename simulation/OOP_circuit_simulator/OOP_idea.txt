@@ -169,3 +169,11 @@ also verilog netlist create nets first, gates later. this matches with my gate o
 # very much like the sim function of gates, this function push the Primary Inputs (PI) forward in time
 def update_PI_voltage(PI_instance, signal, time_now):
     PI_instance.update_voltage(signal(time_now))
+
+'''
+for t_step in range(t_tot):
+    for each_gate in all_gate_list:
+        #do simulation
+
+        each_gate.simulate(all_nets)
+'''
