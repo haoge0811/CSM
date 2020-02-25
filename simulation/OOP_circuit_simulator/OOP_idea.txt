@@ -207,3 +207,7 @@ for line in config_file:
 
 
 
+def create_net_instance(list_of_net): # create_net_instance from list of net names to be created
+    for each_item in list_of_net:
+        net_name = each_item
+        nets_dict[net_name] = net(name=net_name, initial_voltage=0)
