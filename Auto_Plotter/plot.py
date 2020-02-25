@@ -31,7 +31,7 @@ def drop_resolution(input_list, drop_factor = 10):
 
 
 # can use wildcard here e.g. *NAND2* glob is used to expand wiildcard
-to_be_plotted = ["voltage_save.csv","spice.txt"]
+to_be_plotted = ["0_initial_voltage_save.csv","0_initial_spice.txt"]
 
 expanded_plot_list = []
 for a_name in to_be_plotted:
@@ -74,11 +74,11 @@ for each_file in expanded_plot_list:
 
 # CSM
 #plt.plot("time","N22", data=all_file_data_dict["voltage_save.csv"],label="CSM_N22")
-plt.plot("time","N23", data=all_file_data_dict["voltage_save.csv"],label="CSM_N23")
+plt.plot("time","N23", data=all_file_data_dict["0_initial_voltage_save.csv"],label="CSM_N23")
 
 # spice
 #plt.plot("time","N22", data=all_file_data_dict["spice.txt"],label="spice_N22")
-plt.plot("time","N23", data=all_file_data_dict["spice.txt"],label="spice_N23")
+plt.plot("time","N23", data=all_file_data_dict["0_initial_spice.txt"],label="spice_N23")
 
 
 plt.legend()

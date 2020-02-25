@@ -1,19 +1,37 @@
 # Author: haoge <haoge@usc.edu> at USC SPORT Lab
 
 import re
+import importlib # to import config file given name string
 from classes import *
-from config import *
+
+
+
+# improting variable from config file
+config_file_name = "config"
+config_file = importlib.import_module(config_file_name)
+LUT_dir = config_file.LUT_dir
+verilog_netlist_dir = config_file.verilog_netlist_dir
+final_output_load = config_file.final_output_load
+PI_signal_dict = config_file.PI_signal_dict
+t_step = config_file.t_step
+t_tot = config_file.t_tot
+save_file_dir = config_file.save_file_dir
+voltage_nodes_to_save = config_file.voltage_nodes_to_save
+# importing compelete
+# checked after this modification, original function not affected
+
+
+
 
 def create_net_instance(list_of_net): # create_net_instance from list of net names to be created
     for each_item in list_of_net:
         net_name = each_item
         nets_dict[net_name] = net(name=net_name, initial_voltage=0)
 
-
 #def the_creator(verlog_netlist_dir): # this function create all instances that is going to be used for simulation.
 
 #NAND2_LUT = load_LUT("../../LUT_bin/FINFET_7nm_LSTP_NAND2_VL-0.14_VH0.84_VSTEP0.05_P1.0_V0.7_T25.0.lut")
-NAND2_LUT = load_LUT(NAND2_LUT_dir)
+NAND2_LUT = load_LUT(LUT_dir["NAND2"])
 
 #verilog_netlist_dir = "./c17.v"
 # open verilog netlist to read

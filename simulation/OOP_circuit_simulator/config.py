@@ -6,7 +6,8 @@ from functions import *
 verilog_netlist_dir = "./c17.v"
 
 # if LUT not exist, create it using characterzation process
-NAND2_LUT_dir = "../../LUT_bin/FINFET_7nm_LSTP_NAND2_VL-0.14_VH0.84_VSTEP0.05_P1.0_V0.7_T25.0.lut"
+LUT_dir = dict()
+LUT_dir["NAND2"] =  "../../LUT_bin/FINFET_7nm_LSTP_NAND2_VL-0.14_VH0.84_VSTEP0.05_P1.0_V0.7_T25.0.lut"
 
 
 #extra_cap_load_at_final_output
