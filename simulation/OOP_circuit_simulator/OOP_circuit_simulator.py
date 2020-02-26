@@ -273,9 +273,10 @@ def main(config_file_name):
 
 # if running stand alone
 if __name__ == '__main__':
-    import argparse
-    p = argparse.ArgumentParser()
-    p.add_argument('config', help="path of the config file", type=str)
-    args = p.parse_args()
-
-    main(args.config)
+    import sys
+    print sys.argv[1]
+    if len(sys.argv) != 2:
+        print "Usage: python OOP_circuit_simulator.py config.py"
+        print "config.py must be in same directory as simulator"
+    else:
+        main(sys.argv[1][:-3]) # -3 to strip out ".py"
