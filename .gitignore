@@ -1,10 +1,9 @@
+#/.gitignore
 /dev/
 /.idea/
 /LUT_bin/human_readable_LUT/
 /LUT_bin/spice_processed_char_out/
 /LUT_bin/spice_raw_char_out/
-#/.gitignore
-
-
 
 # ignore all pyc
+*.pyc
