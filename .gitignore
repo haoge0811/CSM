@@ -6,4 +6,4 @@
 /LUT_bin/spice_raw_char_out/
 
 # ignore all pyc
-**/*.pyc
+*.pyc
