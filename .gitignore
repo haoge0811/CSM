@@ -4,6 +4,9 @@
 /LUT_bin/human_readable_LUT/
 /LUT_bin/spice_processed_char_out/
 /LUT_bin/spice_raw_char_out/
+/simulation/Gate_level_sim_and_NN_archive/
+/simulatoin/OOP_idea.txt
+/simulatoin/OOP_test.py
+/simulatoin/general_test.py
 
-# ignore all pyc
 *.pyc

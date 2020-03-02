@@ -1,6 +1,10 @@
 import matplotlib.pyplot as plt
 import glob
 
+# list the file to be ploted here, then go to bottom to plot to your liking.
+# can use wildcard here e.g. *NAND2* glob is used to expand wiildcard
+to_be_plotted = ["voltage_save.csv","spice.txt"]
+
 
 def string2float(s):
     if s[-1] == 'm':
@@ -28,10 +32,6 @@ def drop_resolution(input_list, drop_factor = 10):
         else:
             counter += 1
     return output_list
-
-
-# can use wildcard here e.g. *NAND2* glob is used to expand wiildcard
-to_be_plotted = ["0_initial_voltage_save.csv","0_initial_spice.txt"]
 
 expanded_plot_list = []
 for a_name in to_be_plotted:
@@ -68,17 +68,20 @@ for each_file in expanded_plot_list:
 
 
 # manual plotting part.
+# below is just an example of plotting, you can plot however you like.
 # all_file_data_dict["file_name"] has it's data avaliable in dict format
 
-#print all_file_data_dict["spice.txt"].keys()
-
 # CSM
-#plt.plot("time","N22", data=all_file_data_dict["voltage_save.csv"],label="CSM_N22")
-plt.plot("time","N23", data=all_file_data_dict["0_initial_voltage_save.csv"],label="CSM_N23")
+CSM_file_name = to_be_plotted[0]
+CSM_signal_to_be_plotted = ["N22","N23"]
+for a_signal in CSM_signal_to_be_plotted:
+    plt.plot("time",a_signal, data=all_file_data_dict[CSM_file_name],label="CSM_"+a_signal)
 
 # spice
-#plt.plot("time","N22", data=all_file_data_dict["spice.txt"],label="spice_N22")
-plt.plot("time","N23", data=all_file_data_dict["0_initial_spice.txt"],label="spice_N23")
+spice_file_name = to_be_plotted[1]
+spice_signal_to_be_plotted = ["N22","N23"]
+for a_signal in spice_signal_to_be_plotted:
+    plt.plot("time",a_signal, data=all_file_data_dict[spice_file_name],label="spice_"+a_signal)
 
 
 plt.legend()

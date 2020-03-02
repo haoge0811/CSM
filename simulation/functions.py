@@ -182,3 +182,7 @@ class Signal:
         elif self.mode == "constant":
             sig = self.constant
             return sig
+
+
+def circuit_levelizer():
+    pass
