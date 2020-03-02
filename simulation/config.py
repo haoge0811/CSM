@@ -3,7 +3,7 @@
 # command:
 from functions import *
 
-verilog_netlist_dir = "./c17.v"
+verilog_netlist_dir = "./ISCAS_85_verilog/c17.v"
 
 # if LUT not exist, create it using characterzation process
 LUT_dir = dict()
