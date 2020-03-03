@@ -8,12 +8,21 @@ def main(config_file_name):
     # improting variable from config file
     #config_file_name = "config"
     config_file = importlib.import_module(config_file_name)
-    LUT_dir = config_file.LUT_dir
+
+    # added section for different style LUT loading
+    LUT_name_front = config_file.LUT_bin_dir + config_file.TECH
+    LUT_name_back = "VL" + str(config_file.VL) + "_VH" + str(config_file.VH) + "_VSTEP" + \
+                    str(config_file.VSTEP) + "_P" + str(config_file.PROCESS_VARIATION) + "_V" \
+                    + str(config_file.VDD) + "_T" + str(config_file.TEMPERATURE) + ".lut"
+    # section end
+
+
+    #LUT_dir = config_file.LUT_dir
     verilog_netlist_dir = config_file.verilog_netlist_dir
-    final_output_load = config_file.final_output_load
+    #final_output_load = config_file.final_output_load
     PI_signal_dict = config_file.PI_signal_dict
-    t_step = config_file.t_step
-    t_tot = config_file.t_tot
+    t_step = config_file.T_STEP
+    t_tot = config_file.T_TOT
     save_file_dir = config_file.save_file_dir
     voltage_nodes_to_save = config_file.voltage_nodes_to_save
     # importing compelete
@@ -43,11 +52,14 @@ def main(config_file_name):
 
     # Load corresponding LUT
     if presence_detection["inv"]:
-        INV_LUT = load_LUT(LUT_dir["INV"])
+        #INV_LUT = load_LUT(LUT_dir["INV"])
+        INV_LUT = load_LUT(LUT_name_front + "_INV_" + LUT_name_back) # different style LUT loading
     if presence_detection["nand"]:
-        NAND2_LUT = load_LUT(LUT_dir["NAND2"])
+        #NAND2_LUT = load_LUT(LUT_dir["NAND2"])
+        NAND2_LUT = load_LUT(LUT_name_front + "_NAND2_" + LUT_name_back)
     if presence_detection["nor"]:
-        NOR2_LUT = load_LUT(LUT_dir["NOR2"])
+        #NOR2_LUT = load_LUT(LUT_dir["NOR2"])
+        NOR2_LUT = load_LUT(LUT_name_front + "_NOR2_" + LUT_name_back)
 
     for a_name in sensitive_names:
         if presence_detection[a_name]:
@@ -172,6 +184,16 @@ def main(config_file_name):
         gates_dict[each_gate].simulate(just_update_CI=True)
     # above is gold
 
+    # added section for load all PO
+    if (config_file.load_all_PO == True):
+        final_output_load = dict()
+        for each_net in output_nodes:
+            final_output_load[each_net] = config_file.cap_value
+    else:
+        final_output_load = config_file.final_output_load
+    # section end
+
+
 
     #CL = nets_dict["N22"].sum_CL()
     #print CL
@@ -264,11 +286,6 @@ def main(config_file_name):
         save_file.write("\n")
 
     save_file.close()
-
-    # once this works, consider putting all settings in a config file, much like spice style
-
-
-    #N16 =1, N19 = 1, N23 =0
 
 
 # if running stand alone

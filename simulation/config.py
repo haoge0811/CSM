@@ -6,24 +6,37 @@ from functions import *
 verilog_netlist_dir = "./ISCAS_85_verilog/c17.v"
 
 # if LUT not exist, create it using characterzation process
-LUT_dir = dict()
-LUT_dir["NAND2"] =  "../../LUT_bin/FINFET_7nm_LSTP_NAND2_VL-0.14_VH0.84_VSTEP0.05_P1.0_V0.7_T25.0.lut"
-
-
-#extra_cap_load_at_final_output
-final_output_load = {"N22": 1e-16, "N23": 1e-16}
-
-
+LUT_bin_dir = "../LUT_bin/"
+# LUT selection. the following parameter determins which CSM model (LUT) will be loaded for simulation.
+TECH = "FINFET_7nm_LSTP"
+VDD = 0.7 # this is the vdd used during the creation of CSM model. it has nothing to do with the simulation vdd.
+# in fact, there is no way to control the simulation vdd here. user should just pick different CSM model from LUT bin
+VL = -0.14
+VH = 0.84
+VSTEP = 0.05
+PROCESS_VARIATION = 1.0 # process variation multiplier
+TEMPERATURE = 25.0
 # simulation parameters
-t_tot = 300e-12
-t_step = 0.01e-12
-# inputs
+T_TOT = 300e-12
+T_STEP = 0.01e-12
+
+# primary inputs
 PI_signal_dict = {
     "N1":Signal(mode = "constant", constant=0.7),
     "N2":Signal(mode = "constant", constant=0.0),
     "N3":Signal(mode = "constant", constant=0.7),
     "N6":Signal(mode = "constant", constant=0.0),
     "N7":Signal(mode="ramp_lh", param={"vdd": 0.7, "t_0": 5e-12, "t_lh": 50e-12})}
+
+
+# capacitive loading of primary output
+# two way of declaring
+# 1. load all
+load_all_PO = True
+cap_value = 1e-16
+# 2. manually choose to load how much on each node
+#load_all_PO = False
+#final_output_load = {"N22": 1e-16, "N23": 1e-16}
 
 # saving options
 save_file_dir = "./voltage_save.csv"
