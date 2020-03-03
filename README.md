@@ -1,6 +1,6 @@
 # Writing in progress
 
-Introduction and structure of program:
+##Introduction and structure of program:
     The CSM simulator has 2 main parts, characterisation and simulation.
 
     The CSM model of standard gates needs to be created before CSM simulation can be run.
@@ -18,7 +18,7 @@ Introduction and structure of program:
     Some additional files:
         Wrapper -- provided example wrapper (or shell) to operate the tool from top level
 
-Explanation and usage:
+##Explanation and usage:
     1. characterisation
         usage: there are 2 ways to call the characterisation tool
             1. in linux command line type e.g: "python characterisation.py --gate_name NAND2 --VSTEP 0.05 \
