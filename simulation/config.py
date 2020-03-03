@@ -1,6 +1,6 @@
 # this config file is used by OOP circuit simulator
 # set simulation conditions in this file, then call OOP circuit simulator from terminal
-# command:
+# command: python OOP_circuit_simulator.py config.py
 from functions import *
 
 verilog_netlist_dir = "./ISCAS_85_verilog/c17.v"
