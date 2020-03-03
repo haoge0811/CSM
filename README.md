@@ -12,6 +12,9 @@ When user opens the CSM package, there will be 4 folders.
 3. modelfiles -- spice model libraries, we use PTM in our case
 4. simulation -- the tool that perform circuit simulation using CSM models (LUT and NN) created
 
+Some additional files:
+Wrapper -- provided example wrapper (or shell) to operate the tool from top level 
+
 Explanation and usage:
 1. characterisation
 
