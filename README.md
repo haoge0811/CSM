@@ -1,4 +1,4 @@
-# merging of saeed change is in progress.
+# Writing in progress
 
 Introduction and structure of program:
     The CSM simulator has 2 main parts, characterisation and simulation.
