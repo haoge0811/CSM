@@ -19,7 +19,7 @@ Some additional files:
 Wrapper -- provided example wrapper (or shell) to operate the tool from top level
 
 ## Explanation and usage:
-1. characterisation
+1. characterisation    
     **Usage: there are 2 ways to call the characterisation tool**
     1. in linux command line type e.g: "python characterisation.py --gate_name NAND2 --VSTEP 0.05 \
     --LIB_DIR ../modelfiles/PTM_MG/lstp/7nm_LSTP.pm --VDD 0.7 --TEMPERATURE 25"
@@ -42,7 +42,7 @@ Wrapper -- provided example wrapper (or shell) to operate the tool from top leve
     Note: Currently the tool only supports INV, NAND2, NOR2 gates.
 
 
-2. LUT_bin
+2. LUT_bin  
     User does NOT interact with this folder.
     This folder serves as a inventory of all the created CSM models, whether in the form of LUT or NN.
     It is the only connection between the characterisation part and simulation part of the tool.
@@ -51,12 +51,12 @@ Wrapper -- provided example wrapper (or shell) to operate the tool from top leve
     config.py file. In this file, data of LUT will be stored in format that can be imported to Excel.
     It can be used for debugging purpose.
 
-3. modelfiles
+3. modelfiles  
     User does NOT interact with this folder.
     It is used by characterisation process, and can be used for equivalent spice simulation to verify the
     accuracy of CSM.
 
-4. simulation
+4. simulation  
     **Usage: there are 2 ways to call the simulation tool**
     1. in linux command line type e.g: "python OOP_circuit_simulator.py config.py"
     2. import the characterisation.py as a module in a top level python file. then use
