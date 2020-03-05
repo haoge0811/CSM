@@ -9,11 +9,11 @@ Note: python 2.7 is used for this project. require package ........ Characterisa
 linux machine with H-SPICE installed. simulation part can be run on any machine with Python installed.
 
 When user opens the CSM package, there will be 4 folders.
-    - characterisation -- the section that creates CSM models in the form of Look-Up-Table (LUT)
-        or Neuron-Network (NN)
-    - LUT_bin -- where characterised CSM model (LUT and NN) is stored
-    - modelfiles -- spice model libraries, we use PTM in our case
-    - simulation -- the tool that perform circuit simulation using CSM models (LUT and NN) created
+- characterisation -- the section that creates CSM models in the form of Look-Up-Table (LUT)
+    or Neuron-Network (NN)
+- LUT_bin -- where characterised CSM model (LUT and NN) is stored
+- modelfiles -- spice model libraries, we use PTM in our case
+- simulation -- the tool that perform circuit simulation using CSM models (LUT and NN) created
 
 Some additional files:
 Wrapper -- provided example wrapper (or shell) to operate the tool from top level
@@ -21,10 +21,10 @@ Wrapper -- provided example wrapper (or shell) to operate the tool from top leve
 ## Explanation and usage:
 - characterisation   
     **Usage: there are 2 ways to call the characterisation tool**
-    1. in linux command line type e.g: "python characterisation.py --gate_name NAND2 --VSTEP 0.05 \
+    - in linux command line type e.g: "python characterisation.py --gate_name NAND2 --VSTEP 0.05 \
     --LIB_DIR ../modelfiles/PTM_MG/lstp/7nm_LSTP.pm --VDD 0.7 --TEMPERATURE 25"
     see shell_command.sh for example
-    2. import the characterisation.py as a module in a top level python file. then use
+    - import the characterisation.py as a module in a top level python file. then use
     characterisation.main("NAND2", 0.05, "../modelfiles/PTM_MG/lstp/7nm_LSTP.pm", 0.7, 25.0)
     see char_top.py for example
 
@@ -58,8 +58,8 @@ Wrapper -- provided example wrapper (or shell) to operate the tool from top leve
 
 - simulation  
     **Usage: there are 2 ways to call the simulation tool**
-    1. in linux command line type e.g: "python OOP_circuit_simulator.py config.py"
-    2. import the characterisation.py as a module in a top level python file. then use
+    - in linux command line type e.g: "python OOP_circuit_simulator.py config.py"
+    - import the characterisation.py as a module in a top level python file. then use
     OOP_circuit_simulator.main("config.py")   Note: use quotation marks aroud config.py
     Note: config.py can be any .py file written in compatiable format, does not need to literally be 
     called config.py. 
