@@ -20,7 +20,7 @@
 
 ## Explanation and usage:
     1. characterisation
-        *Usage: there are 2 ways to call the characterisation tool*
+        **Usage: there are 2 ways to call the characterisation tool**
             1. in linux command line type e.g: "python characterisation.py --gate_name NAND2 --VSTEP 0.05 \
             --LIB_DIR ../modelfiles/PTM_MG/lstp/7nm_LSTP.pm --VDD 0.7 --TEMPERATURE 25"
             see shell_command.sh for example
@@ -28,8 +28,8 @@
             characterisation.main("NAND2", 0.05, "../modelfiles/PTM_MG/lstp/7nm_LSTP.pm", 0.7, 25.0)
             see char_top.py for example
         
-        *Explanation*
-        the characterisation tool create CSM models (LUT) according to user's configuration
+        **Explanation**
+        The characterisation tool create CSM models (LUT) according to user's configuration
         input: gate name, resolution of LUT (VSTEP), spice library to use, VDD, temperature
         output: CSM model (LUT)
         There is another config.py file in the characterisation folder, that is used to change some relatively
@@ -38,6 +38,8 @@
         During characterisation process, a series of DC and trasient spice simulations were performed on the
         gate in question, to record the it's characteristic under different situations, hence creating the
         CSM LUT. See paper for more detail on this process [].
+        
+        Note: Currently the tool only supports INV, NAND2, NOR2 gates.
 
 
     2. LUT_bin
@@ -62,18 +64,14 @@
         Note: config.py can be any .py file written in compatiable format, does not need to literally be 
         called config.py. 
         
-        In this way, user would be abo
-        
-        
         *Explanation*
-        the characterisation tool create CSM models (LUT) according to user's configuration
-        input: gate name, resolution of LUT (VSTEP), spice library to use, VDD, temperature
-        output: CSM model (LUT)
-        There is another config.py file in the characterisation folder, that is used to change some relatively
-        non-changing variables. e.g. extra saving options.
+        The simulation tool uses the CSM model created in previous step to simulate a circuit in gate level.
+        It does simulation by solving differential equations for the gate in question, using components values
+        retrieved from LUT.
+        The config.py file very much like spice .sp file, describes the simulation setup, then the simulation
+        tool can be called to simulate this setup as described above. User can create many config file ahead 
+        of time, then call them in a shell script, just as H-spice.
+        The output of voltage nodes is saved in csv format.
         
-        During characterisation process, a series of DC and trasient spice simulations were performed on the
-        gate in question, to record the it's characteristic under different situations, hence creating the
-        CSM LUT. See paper for more detail on this process [].    
-    
-    
+        Note: input netlist need to be in verilog format, and currently the tool only supports INV, NAND2, 
+        NOR2 gates.
