@@ -243,7 +243,7 @@ def main(config_file_name):
         # after simulation, check if all nets besides PI have settled
         for each_net in (circuit_internal_nodes + output_nodes):  # all other nodes
             dV_of_this_net = nets_dict[each_net].voltage - nets_dict[each_net].voltage_just_now
-            slope = dV_of_this_net/t_step
+            slope = abs(dV_of_this_net/t_step)
             #print slope
             #print "th: " + str(initial_voltage_settle_threshold)
             if (slope > initial_voltage_settle_threshold):
@@ -267,26 +267,41 @@ def main(config_file_name):
     print "simulating..."
     for step_number in range(int(t_tot / t_step)):
         t = step_number * t_step
-        t_ps = t * 1e12  # just for readability
+        # t_ps = t * 1e12  # just for readability
 
         #print "simulating for t = " +str(t_ps) + "ps"
         for level in range(len(level_list)): # simulate circuit level by level, from PI to output
             if level == 0: # For Primary inputs
                 for each_PI in level_list[level]:
                     nets_dict[each_PI].update_voltage(PI_signal_dict[each_PI].get_val(t)) #(signal(t))
-            else:
+            else: # for all other levels, i.e. logic gates
                 for each_gate in level_list[level]:
-                    gates_dict[each_gate].simulate(t_step) # simulate the gate for this time step
+                    # event driven logic exist 1.here 2.in "logic_gate" class, "status" attribute.
+                    # 3.check_status function in each logic gate sub class.
+                    # 4. input_net_last_active_voltage attribute in each logic gate sub class.
 
+                    # this function check and set status of logic gates appropriatly
+                    # I am re-using the voltage settle threshold from initial voltage finding here. they very well
+                    # could be the same, and defined in config file
+                    gates_dict[each_gate].check_status(t_step, initial_voltage_settle_threshold)
+                    if (gates_dict[each_gate].status == "active") or (gates_dict[each_gate].status == "stabilising"):
+                        # simulate as usual
+                        gates_dict[each_gate].simulate(t_step)  # simulate the gate for this time step
+                    # else just skip the simulation
+                    # we can print out status of each gate at given time for debugging.
+                    #print each_gate + " " + gates_dict[each_gate].status
 
-        # extra save voltage
+                    # if event_driven is turned off as global setting, then just go ahead and simulate every time, like
+                    # before
+                    # gates_dict[each_gate].simulate(t_step)  # simulate the gate for this time step
+
+        # save voltage of chosen nets
         save_file.write(str(t))
         for each_net in voltage_nodes_to_save:
             save_file.write(","+ str(nets_dict[each_net].voltage))
         save_file.write("\n")
 
     save_file.close()
-
 
 # if running stand alone
 if __name__ == '__main__':

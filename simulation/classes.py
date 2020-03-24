@@ -46,13 +46,21 @@ class logic_gate: # base (or parent) class for all logic gates
         # self.input_net = input_net
         self.output_net = output_net # this can convinently be net instance, and can be changed later within object
         self.LUT_and_boundary = LUT_and_boundary
-        self.active = True
+        self.status = "active"
+        # there can be 3 status for event driven purpose.
+        #   "active":      everything active, working as normal
+        #   "stabilising": all input nets has stabled, waiting on output net to settle. technically internal net will
+        #                  also need to be checked. however it's not straight forward to implement. hence, not included
+        #   "sleep":       not active. simulation is simply skipped. output net voltage will naturally not change.
         self.level = None # reserve a space here
 
 class INV(logic_gate):
     def __init__(self, name, LUT_and_boundary, output_net, input_net):
         logic_gate.__init__(self, name, LUT_and_boundary, output_net) # inherite from parent class
         self.input_net = input_net
+
+        # added for event driven
+        self.input_net_last_active_voltage = input_net.voltage # its going to be initial voltage anyway.
 
     # instance function, unique to INV, NAND2, NOR2, since differenct differential equation
     def simulate(self, t_step = None, just_update_CI = False): # it is going to simulate for 1 single time step
@@ -95,11 +103,30 @@ class INV(logic_gate):
         self.output_net.level = new_level
         return gate_level_updated
 
+    def check_status(self, t_step, settle_threshold): # check and set the status of this gate.
+        d_Vin_slope = abs((self.input_net.voltage - self.input_net_last_active_voltage)/t_step)
+        d_Vout_slope = abs((self.output_net.voltage - self.output_net.voltage_just_now)/t_step)
+
+        if (d_Vin_slope > settle_threshold): # input not settled
+            self.status = "active"
+            self.input_net_last_active_voltage = self.input_net.voltage # update last active voltage
+        elif (d_Vout_slope > settle_threshold): # input settled, but waiting on output to settle
+            self.status = "stabilising"
+        else: # all settled, let's sleep
+            self.status = "sleep"
+
+        # a bug is, the point input is considered to be settled, the voltage at that point need to be rememberd and
+        # compared against. otherwise, if input ramp-up slowly, the gate will never wake up.
+
 class NAND2(logic_gate):
     def __init__(self, name, LUT_and_boundary, output_net, input_net_A, input_net_B, internal_node_initial_V=0):
         logic_gate.__init__(self, name, LUT_and_boundary, output_net) # inherite from parent class
         self.input_net_A = input_net_A
         self.input_net_B = input_net_B
+
+        # added for event driven
+        self.input_net_A_last_active_voltage = input_net_A.voltage # its going to be initial voltage anyway.
+        self.input_net_B_last_active_voltage = input_net_B.voltage
 
         # special to NAND2 NOR2, it has internal node. This node is currently not visible to top level circuit
         # however, we do need to store it's voltage for simulation
@@ -158,6 +185,21 @@ class NAND2(logic_gate):
             gate_level_updated = False
         self.output_net.level = new_level
         return gate_level_updated
+
+    # only difference to INV is, it now checks 2 input nodes
+    def check_status(self, t_step, settle_threshold): # check and set the status of this gate.
+        d_Vna_slope = abs((self.input_net_A.voltage - self.input_net_A_last_active_voltage)/t_step)
+        d_Vnb_slope = abs((self.input_net_B.voltage - self.input_net_B_last_active_voltage)/t_step)
+        d_Vout_slope = abs((self.output_net.voltage - self.output_net.voltage_just_now)/t_step)
+
+        if (d_Vna_slope > settle_threshold) or (d_Vnb_slope > settle_threshold): # input not settled
+            self.status = "active"
+            self.input_net_A_last_active_voltage = self.input_net_A.voltage  # update last active voltage
+            self.input_net_B_last_active_voltage = self.input_net_B.voltage
+        elif (d_Vout_slope > settle_threshold): # input settled, but waiting on output to settle
+            self.status = "stabilising"
+        else: # all settled, let's sleep
+            self.status = "sleep"
 
 class NOR2(NAND2):
     # they have no difference in this simulation procedure
