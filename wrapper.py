@@ -12,14 +12,15 @@ import sys
 
 # job 0
 # check the OOP_circuit_simulator config.py file, see if the LUT
-# user asks exist, if not, call characterisaion tool to create it.
-sys.path.insert(1,'../CSM-master/simulation/OOP_circuit_simulator')
+# user asking exist, if not, call characterisaion tool to create it.
+sys.path.insert(1,'../CSM_Testing/simulation')
 import config
-os.chdir("../CSM-master/simulation/OOP_circuit_simulator")
+os.chdir("../CSM_Testing/simulation")
 config_file = importlib.import_module('config')
-CIRCUIT_NAME = config_file.NETLIST
+CIRCUIT_NAME = config_file.verilog_netlist_dir
 VERILOG_FILE = CIRCUIT_NAME
-SPICE_FILE = CIRCUIT_NAME.replace('.v', '.sp')
+SPICE_FILE = CIRCUIT_NAME.split('/')[2].replace('.v', '.sp')
+
 
 # get all gate types in .v netlist
 gate_list = []
@@ -38,13 +39,13 @@ for line in gate_list:
 #print(gate_type_list)
 
 # check if the gate LUT exists in LUT_bin
-LUT_name_front = config_file.lut_dir + config_file.TECH
+LUT_name_front = config_file.LUT_bin_dir + config_file.TECH
 LUT_name_back = "VL" + str(config_file.VL) + "_VH" + str(config_file.VH) + "_VSTEP" + \
                 str(config_file.VSTEP) + "_P" + str(config_file.PROCESS_VARIATION) + "_V" \
                 + str(config_file.VDD) + "_T" + str(config_file.TEMPERATURE) + ".lut"
 miss_gate = []
-os.chdir("../CSM-master/LUT_bin")
-for gate in gate_list:
+os.chdir("../LUT_bin")
+for gate in gate_type_list:
     lut_dir = LUT_name_front + "_" + gate + "_" + LUT_name_back
     if os.path.exists(lut_dir) == False:
         print(gate, ": this gate's LUT doesn't exist, will characterize for it")
@@ -52,6 +53,7 @@ for gate in gate_list:
 # do characterisation for missing gate
 if len(miss_gate) > 0:
     for gate in miss_gate:
+        os.chdir("../characterisation")
         characterisation.main(gate, config_file.VSTEP, "../modelfiles/PTM_MG/lstp/7nm_LSTP.pm", \
                               fig_file.VDD, config_file.TEMPERATURE)
 
@@ -59,25 +61,28 @@ if len(miss_gate) > 0:
 # read original verilog netlist and record all final outputs, so that final output loads 
 # can be added to them. This job should modify the final_output_load of config file
 print("reading verilog netlist, and get the final outputs information")
-os.chdir("../CSM-master/HSPICE_simulation")
+os.chdir("../HSPICE_simulation")
+sys.path.insert(1,'../HSPICE_simulation')
+from translator_from_verilog_to_spice_netlist import translator_from_verilog_to_spice_netlist
+v_file = VERILOG_FILE[1:]
 circuit_output = translator_from_verilog_to_spice_netlist(\
-    "../CSM-master/simulation/OOP_circuit_simulator"+VERILOG_FILE, SPICE_FILE)
+    "../simulation"+v_file, SPICE_FILE)
 
 
 # job 2 
 # call OOP_circuit_simulator in simulation folder
-os.chdir("../CSM-master/simulation/OOP_circuit_simulator")
+os.chdir("../simulation")
 os.system("python OOP_circuit_simulator config.py")
 
 # job 3
 # translate CSM_config file to spice .sp file
 # call hspice and run equivalent.
-os.chdir("../CSM-master/HSPICE_simulation")
+os.chdir("../HSPICE_simulation")
 os.system("python hspice_simulator")
 
 # job 4
 # call Auto_Plotter to plot csm simulation result
 # todo: how to plot hspice output?
-os.chdir("../CSM-master/Auto_Plotter")
-os.system("python plot.py")
+#os.chdir("../CSM-master/Auto_Plotter")
+#os.system("python plot.py")
 
