@@ -6,6 +6,7 @@
 .param vdd=0.7
 
 .include '../modelfiles/PTM_MG/lstp/7nm_LSTP.pm'
+.include '../characterisation/temp_files/gate_inventory_gen.sp'
 
 
 vhi hi 0 vdd

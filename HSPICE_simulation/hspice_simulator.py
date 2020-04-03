@@ -29,9 +29,10 @@ def main(config_file_name):
     spice_param = ".param vdd=0.7"
     LIB_DIR = "../modelfiles/PTM_MG/lstp/7nm_LSTP.pm" # input library
     spice_include = ".include " + "'" + LIB_DIR + "'"
+	spice_include_gate_inventory = ".include " + "'" + "../characterisation/temp_files/gate_inventory_gen.sp" + "'"
     spice_netlists.writelines(["* Eda Yan\n", "* USC - SPORT LAB\n"])
     spice_netlists.writelines([spice_option, "\n", spice_global, "\n", spice_temp, "\n", spice_param, "\n\n"])
-    spice_netlists.writelines([spice_include, "\n\n\n"])
+    spice_netlists.writelines([spice_include, "\n", spice_include_gate_inventory, "\n\n\n"])
     for line in temp_netlist:
         spice_netlists.writelines([line])
     
@@ -42,10 +43,16 @@ def main(config_file_name):
         i = 1
         for key in spice_extra_output_load:
             spice_netlists.writelines(["cL", str(i), " ", key, " 0 ", str(spice_extra_output_load[key]), "\n"])
+            i = i + 1
     else:
         spice_output_load = config.cap_value
+        i = 1
+        output_list = output_list[0].split()[1]
+        output_list = output_list.strip(';\n')
+        output_list = output_list.split(',')
         for output in output_list:
             spice_netlists.writelines(["cL", str(i), " ", output, " 0 ", str(spice_output_load), "\n"])
+            i = i + 1
     spice_netlists.writelines(["\n"])
     
     #generate input signals
@@ -92,6 +99,6 @@ def main(config_file_name):
     spice_netlists.close()
     
     #call hspice and save output to .out file
-    #os.system(hspice spice_file_dir > spice_file_dir.replace('.sp', '.out'))
+    os.system('hspice c17.sp > c17.out')
 
 main("config")
