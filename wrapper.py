@@ -19,8 +19,8 @@ os.chdir("../CSM_Testing/simulation")
 config_file = importlib.import_module('config')
 CIRCUIT_NAME = config_file.verilog_netlist_dir
 VERILOG_FILE = CIRCUIT_NAME
-SPICE_FILE = CIRCUIT_NAME.split('/')[2].replace('.v', '.sp')
-
+SPICE_FILE = CIRCUIT_NAME.replace('.v', '.sp')
+SPICE_FILE = SPICE_FILE.strip('./ISCAS_85_verilog/')
 
 # get all gate types in .v netlist
 gate_list = []
@@ -72,13 +72,13 @@ circuit_output = translator_from_verilog_to_spice_netlist(\
 # job 2 
 # call OOP_circuit_simulator in simulation folder
 os.chdir("../simulation")
-os.system("python OOP_circuit_simulator config.py")
+os.system("python OOP_circuit_simulator.py config.py")
 
 # job 3
 # translate CSM_config file to spice .sp file
 # call hspice and run equivalent.
 os.chdir("../HSPICE_simulation")
-os.system("python hspice_simulator")
+os.system("python hspice_simulator.py")
 
 # job 4
 # call Auto_Plotter to plot csm simulation result
