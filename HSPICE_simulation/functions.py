@@ -120,3 +120,17 @@ class Signal:
         elif self.mode == "constant":
             sig = self.constant
             return sig
+
+def generate_from_template(template_directory, output_directory, replace):
+    infile  = open(template_directory, "r")
+    outfile = open(output_directory, "w", buffering=0)
+
+    for line in infile:
+        if "$$" in line:      # if this line is to be replaced
+            for k in replace:    # if an item is listed in input dictionary
+                if k in line: # then replace it with the dictionary value
+                    line = line.replace(k, str(replace[k]))
+        outfile.write(line)
+
+    infile.close()
+    outfile.close()

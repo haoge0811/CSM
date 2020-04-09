@@ -21,15 +21,54 @@ def main(config_file_name):
     temp_netlist = spice_netlists.readlines()
     spice_netlists.close()
     spice_netlists = open(spice_file_dir, 'w')
-    
+
+    # added by haoge start ------------------------------------------------------------------------------
+    LIB_DIR_MAP = dict()
+    LIB_DIR_MAP["FINFET_7nm_HP"] = "../modelfiles/PTM_MG/hp/7nm_HP.pm"
+    LIB_DIR_MAP["FINFET_7nm_LSTP"] = "../modelfiles/PTM_MG/lstp/7nm_LSTP.pm"
+    LIB_DIR_MAP["MOSFET_16nm_HP"] = "../modelfiles/PTM_MOSFET/16nm_HP.pm"
+    LIB_DIR_MAP["MOSFET_16nm_LP"] = "../modelfiles/PTM_MOSFET/16nm_LP.pm"
+
+    LIB_DIR = LIB_DIR_MAP[config.TECH]
+    # extract library related parameters from library header section
+    library_file = open(LIB_DIR, "r")
+    # set some default value to None, since depending on MOSFET or FINFET, some value will not be provided
+    LIB_WIDTH_N = None
+    LIB_WIDTH_P = None
+    NFIN = None
+    for line in library_file:
+        if "device_name" in line:
+            DEVICE_NAME = line.split()[-1] # take the last element of the line
+        elif "tech_name" in line:
+            TECH_NAME = line.split()[-1]
+        elif "Vth_multiplier" in line:
+            Vth_multiplier = float(line.split()[-1])
+        elif "nominal_length" in line:
+            LIB_LEN = float(line.split()[-1])
+        elif "nominal_width_n" in line:
+            LIB_WIDTH_N = float(line.split()[-1])
+        elif "nominal_width_p" in line:
+            LIB_WIDTH_P = float(line.split()[-1])
+        elif "nominal_nfin" in line:
+            NFIN = float(line.split()[-1])
+    library_file.close()
+    # generate gate inventory
+    owd = os.getcwd()  # record original working directory
+    generate_from_template(template_directory = "./gate_gen/" + DEVICE_NAME + "_GATES.sp",
+                           output_directory   = "gate_inventory_gen.sp",
+                           replace = {"$$library": owd +"/"+ LIB_DIR,
+                                      "$$lg_p": LIB_LEN, "$$lg_n": LIB_LEN,
+                                      "$$w_n": LIB_WIDTH_N, "$$w_p": LIB_WIDTH_P,
+                                      "$$nfin":NFIN})
+    # added by haoge end ------------------------------------------------------------------------------
+
+
     #add simulation conditions to spice file
     spice_option = ".option NOMOD"
     spice_global = ".global vdd"
     spice_temp = ".temp " + str(config.TEMPERATURE)
     spice_param = ".param vdd=0.7"
-    LIB_DIR = "../modelfiles/PTM_MG/lstp/7nm_LSTP.pm" # input library
-    # spice_include = ".include " + "'" + LIB_DIR + "'"
-    spice_include_gate_inventory = ".include " + "'" + "../characterisation/temp_files/gate_inventory_gen.sp" + "'"
+    spice_include_gate_inventory = ".include " + "'" + "./gate_inventory_gen.sp" + "'"
     spice_netlists.writelines(["* Eda Yan\n", "* USC - SPORT LAB\n"])
     spice_netlists.writelines([spice_option, "\n", spice_global, "\n", spice_temp, "\n", spice_param, "\n\n"])
     # spice_netlists.writelines([spice_include, "\n"])
