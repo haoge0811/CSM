@@ -28,11 +28,12 @@ def main(config_file_name):
     spice_temp = ".temp " + str(config.TEMPERATURE)
     spice_param = ".param vdd=0.7"
     LIB_DIR = "../modelfiles/PTM_MG/lstp/7nm_LSTP.pm" # input library
-    spice_include = ".include " + "'" + LIB_DIR + "'"
-	spice_include_gate_inventory = ".include " + "'" + "../characterisation/temp_files/gate_inventory_gen.sp" + "'"
+    # spice_include = ".include " + "'" + LIB_DIR + "'"
+    spice_include_gate_inventory = ".include " + "'" + "../characterisation/temp_files/gate_inventory_gen.sp" + "'"
     spice_netlists.writelines(["* Eda Yan\n", "* USC - SPORT LAB\n"])
     spice_netlists.writelines([spice_option, "\n", spice_global, "\n", spice_temp, "\n", spice_param, "\n\n"])
-    spice_netlists.writelines([spice_include, "\n", spice_include_gate_inventory, "\n\n\n"])
+    # spice_netlists.writelines([spice_include, "\n"])
+    spice_netlists.writelines([spice_include_gate_inventory, "\n\n\n"])
     for line in temp_netlist:
         spice_netlists.writelines([line])
     
@@ -99,6 +100,7 @@ def main(config_file_name):
     spice_netlists.close()
     
     #call hspice and save output to .out file
+    print('hsipce simulating...')
     os.system('hspice c17.sp > c17.out')
 
 main("config")
