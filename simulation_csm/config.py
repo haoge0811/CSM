@@ -3,7 +3,7 @@
 # command: python OOP_circuit_simulator.py config.py
 from functions import *
 
-verilog_netlist_dir = "../ISCAS_85_verilog/c17.v"
+verilog_netlist_dir = "../data/ISCAS_85_verilog/c17.v"
 
 # if LUT not exist, create it using characterzation process
 LUT_bin_dir = "/home/home2/visiting/mitsushij/data/CSM_data/LUT_bin/"
