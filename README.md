@@ -1,5 +1,5 @@
 
-## Current Source Model (CSM) Circuit Simulation Platform and neural networks accelerator (CSM-NN \& NN-PARS)
+## Current Source Model (CSM) Circuit Simulation and Neural Network Accelerator Platform (CSM-NN \& NN-PARS)
 *Curent surce models* (CSMs) use voltage-dependent current sources and possibly voltage-dependent capacitances to model logic cells. In addition to higher accuracy, another advantage of CSM over voltage based look up table (LUT) models is the ability to simulate realistic waveforms for arbitrary input signals and provide the output waveforms. The main disadvantage of using CSM in simulation of circuits is high latency of CSM-parameter retrieval from memory. 
 
 This platform is the result of our research on accelerating CSM circuit simulation taking advantage of NNs and GPU parallel computation. 
@@ -7,7 +7,6 @@ This platform is the result of our research on accelerating CSM circuit simulati
 **Affiliation:** <br />
 <cite>[**The System Power Optimization and Regulation Technology (SPORT) Lab**][1]</cite> <br />
 University of Southern California (USC) 
-
 
 **Publication:** <br />
 <cite>[NN-PARS: A Parallelized Neural Network Based Circuit Simulation Framework, ISQED 2020][3]</cite>  <br />
@@ -31,6 +30,7 @@ University of Southern California (USC)
 - Characterisation part can only be run on a linux machine with H-SPICE installed. 
 - CSM-simulation does not require SPICe and can run on any machine with python2. 
 - Circuit netlist need to be in verilog format, and currently the tool only supports INV, NAND2, NOR2 gates.
+- Machine learning package *scikit-learn* is required for NN models.
 
 
 When user opens the CSM package, there will be 4 folders.
@@ -44,59 +44,48 @@ Some additional files:
 - Precharacterized LUTs -- characterised CSM model (LUTs) are stored outside the repo set in *config.LUT_bin_dir*
 
 ## Package functionality
-- **characterisation**
-    Usage: there are 2 ways to call the characterisation tool
+### Characterisation
+
+There are 2 ways to call the characterisation tool: 
+    
+Use the script with arguments (see *shell_command.sh* for example):
     ```sh
     python characterisation.py --gate_name NAND2 --VSTEP 0.05 \
     --LIB_DIR ../modelfiles/PTM_MG/lstp/7nm_LSTP.pm --VDD 0.7 --TEMPERATURE 25"
     ```
-    see shell_command.sh for example
-    - import the characterisation.py as a module in a top level python file. then use 
+    
+Or, import the characterisation.py as a module in a top level python file, then use the script below (see *char_top.py* for example): 
     ```sh
     characterisation.main("NAND2", 0.05, "../modelfiles/PTM_MG/lstp/7nm_LSTP.pm", 0.7, 25.0)
     ```
-    see *char_top.py* for example
 
-    Explanation: 
-    The characterisation tool create CSM models (LUT) according to user's configuration
-    input: gate name, resolution of LUT (VSTEP), spice library to use, VDD, temperature
-    output: CSM model (LUT)
-    There is another config.py file in the characterisation folder, that is used to change some relatively
-    non-changing variables. e.g. extra saving options.
+Explanation: 
+The characterisation tool create CSM models (LUT) according to user's configuration
+input: gate name, resolution of LUT (VSTEP), spice library to use, VDD, temperature
+output: CSM model (LUT)
+There is another config.py file in the characterisation folder, that is used to change some relatively
+non-changing variables. e.g. extra saving options.
 
-    During characterisation process, a series of DC and trasient spice simulations were performed on the
-    gate in question, to record the it's characteristic under different situations, hence creating the
-    CSM LUT. See paper for more detail on this process [].
+During characterisation process, a series of DC and trasient spice simulations were performed on the
+gate in question, to record the it's characteristic under different situations, hence creating the
+CSM LUT. See reference papers for more details.
 
-    Note: Currently the tool only supports INV, NAND2, NOR2 gates.
+Note: the current version of the tool only supports single or two input gates (INV, NAND2, NOR2).
 
-- **LUT_bin**
-    User does NOT interact with this folder.
-    This folder serves as a inventory of all the created CSM models, whether in the form of LUT or NN.
-    It is the only connection between the characterisation part and simulation part of the tool.
-    Note that LUT and NN are in the form of python pickle dump file.
-    There will be a human_readable_LUT folder, if user choose to create it in the characterisation 
-    config.py file. In this file, data of LUT will be stored in format that can be imported to Excel.
-    It can be used for debugging purpose.
-
-- **modelfiles**
-    User does NOT interact with this folder.
-    It is used by characterisation process, and can be used for equivalent spice simulation to verify the
-    accuracy of CSM.
-
-- **simulation_csm**
-    Usage: there are 2 ways to call the simulation tool
+### CSM Simulation
+There are 2 ways to call the simulation tool: 
     ```sh
     python simulator.py config.py
     ```
     
-    - import the characterisation.py as a module in a top level python file. then use 
+Or, import the characterisation.py as a module in a top level python file and the use:
     ```sh
     simulator.main("config.py")
     ```
-    Note: config.py can be any .py file written in compatiable format, the file name is arbitrary. 
 
-    Explanation: 
+Note: the config file name is arbitrary. 
+
+Explanation: 
     The simulation tool uses the CSM model created in previous step to simulate a circuit in gate level.
     It does simulation by solving differential equations for the gate in question, using components values
     retrieved from LUT.
@@ -104,3 +93,20 @@ Some additional files:
     tool can be called to simulate this setup as described above. User can create many config file ahead 
     of time, then call them in a shell script, just as H-spice.
     The output of voltage nodes is saved in csv format.
+
+### Stored Look Up Tables (LUTs)
+User does NOT interact with this folder.
+This folder serves as a inventory of all the created CSM models, whether in the form of LUT or NN.
+It is the only connection between the characterisation part and simulation part of the tool.
+Note that LUT and NN are in the form of python pickle dump file.
+There will be a human_readable_LUT folder, if user choose to create it in the characterisation config.py file. In this file, data of LUT will be stored in format that can be imported to Excel.
+It can be used for debugging purpose.
+
+### Semiconductor Models and Technologies: 
+User does NOT interact with this folder.
+It is used by characterisation process, and can be used for equivalent spice simulation to verify the accuracy of CSM.
+The models available on this repo are from <cite>[Arizona State University (ASU) Predictive Technology Model (PTM)][7]</cite>. <br />
+
+[7]: http://ptm.asu.edu/
+
+
