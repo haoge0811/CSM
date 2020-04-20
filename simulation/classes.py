@@ -2,6 +2,8 @@
 
 from functions import *
 import re 
+import pdb
+
 
 class net:
     def __init__(self, name, initial_voltage, extra_cap_load = 0):
@@ -258,18 +260,18 @@ class Circuit:
             # step 1, create all net instances
             if "input " in line:
                 line = re.split('\W+', line) # extract all words from line
-                input_nodes = line[1:-1] # primary input list
-                for each_net_name in input_nodes:
+                self.input_nodes = line[1:-1] # primary input list
+                for each_net_name in self.input_nodes:
                     self.nets_dict[each_net_name] = net(name=each_net_name, initial_voltage=0)
             elif "output " in line:
                 line = re.split('\W+', line) # extract all words from line
-                output_nodes = line[1:-1]
-                for each_net_name in output_nodes:
+                self.output_nodes = line[1:-1]
+                for each_net_name in self.output_nodes:
                     self.nets_dict[each_net_name] = net(name=each_net_name, initial_voltage=0)
             elif "wire " in line:
                 line = re.split('\W+', line) # extract all words from line
-                circuit_internal_nodes = line[1:-1]
-                for each_net_name in circuit_internal_nodes:
+                self.circuit_internal_nodes = line[1:-1]
+                for each_net_name in self.circuit_internal_nodes:
                     self.nets_dict[each_net_name] = net(name=each_net_name, initial_voltage=0)
 
             # step 2, create all logic gates instances, pass net instance to gates, according to netlist
@@ -313,12 +315,8 @@ class Circuit:
                 # note: output net and input net instance are passed in as argument here
                 self.gates_dict[gate_name] = NOR2(name=gate_name, LUT_and_boundary=NOR2_LUT,
                                               output_net=self.nets_dict[output_net_name],
-                                              input_net_A=nets_dict[input_A_net_name] ,
-                                              input_net_B=nets_dict[input_B_net_name])
-
-
-    def  create_netlist(self):
-        pass
+                                              input_net_A=self.nets_dict[input_A_net_name] ,
+                                              input_net_B=self.nets_dict[input_B_net_name])
 
 
     def attach_LUTs(self): 
@@ -326,23 +324,175 @@ class Circuit:
 
     
     def levelize(self):
-        pass
+        # TODO: @Hao just check if its working good here later
+
+        for each_net in self.input_nodes: # primary input list
+            self.nets_dict[each_net].level = 0 # set to 0
+        # TODO URGENT: @Hao, what is this circuit_internal_nodes
+        # TODO: Saeed 2 @Hao: I guess just the internal nodes level init is enough?
+        for each_net in (self.circuit_internal_nodes + self.output_nodes): # all other nodes
+            self.nets_dict[each_net].level = 1 # initialize to 1
+    
+        while True:
+            circuit_level_updated = False  # initialize to false
+            for each_gate in self.gates_dict.keys():
+                level_updated = self.gates_dict[each_gate].update_level()
+                if level_updated:
+                    circuit_level_updated = True
+
+            # at the end of all gate iteration, check if the circuit level has been updated
+            # no gate updated output net level > levlization is done
+            if circuit_level_updated == False:
+                break
+        
+        # levelization ends but needs to be recorded (?)
+        # iterate through all gate again to get max level,
+        # # and record all gate record all gate level according to their output net level
+        # I choose to do this in th end hope to reduce comparison brough by max level recording in previous iterations.
+        circuit_max_level = 1 # should at least be 1
+        for each_gate in self.gates_dict.keys():
+            this_gate_output_net_level = self.gates_dict[each_gate].output_net.level
+            # I choose to define a gate's level as its output net's level
+            self.gates_dict[each_gate].level = this_gate_output_net_level
+            if this_gate_output_net_level > circuit_max_level:
+                circuit_max_level = this_gate_output_net_level # record max level
+
+        # iterate though all gate again to put their name to corresponding level list
+        #create an empty list with max_level+1 slots, so we can put PI in this list as well
+        level_list = [[] for i in range(circuit_max_level+1)]
+
+        level_list[0] = self.input_nodes # put PI in level 0
+        for each_gate in self.gates_dict.keys():
+            this_gate_level = self.gates_dict[each_gate].level
+            level_list[this_gate_level].append(self.gates_dict[each_gate].name) 
+        # levelization recording end
+        self.level_list = level_list
 
 
     def set_caps(self):
-        pass
+
+        # TODO: this is just initializing a value for CL of each gate ...
+        # ... to not have zero value. This can be changed to Cout of itself.  
+        # below is GOLD, pre-simulate Cin loaing iteration
+        # run all gates at 0 time just to get cap_load value on nets populated.
+        for each_gate in self.gates_dict.keys():
+            self.gates_dict[each_gate].simulate(just_update_CI=True)
+            
+        # LOAD CAP of PRIMARY OUTPUTs 
+        if (self.config.load_all_PO == True):
+            final_output_load = dict()
+            for each_net in self.output_nodes:
+                final_output_load[each_net] = self.config.cap_value
+        else:
+            final_output_load = self.config.final_output_load
+    
+        # TODO: does not seem to work. ...
+        # ... add cap load to all output nets, this fix the problem for CSM simulator not stable
+        for each_net in self.output_nodes:
+            #nets_dict[each_net].extra_cap_load = 1e-16
+            self.nets_dict[each_net].extra_cap_load = final_output_load[each_net]
 
 
     def init_ckt(self):
-        pass
+        # TODO: first check if levelization is done
+        # TODO: think about removing this signal later from here:
+        PI_signal_dict = self.config.PI_signal_dict
+        t_step = self.config.T_STEP
+
+        print "finding initial conditions..."
+        initial_voltage_settle_threshold = self.config.initial_voltage_settle_threshold
+        all_nets_settled = False
+        while (all_nets_settled == False):
+            #print "finding initial conditions..."
+            all_nets_settled = True
+            for level in range(len(self.level_list)):  # simulate circuit level by level 
+                if level == 0:  # Primary inputs
+                    for each_PI in self.level_list[level]:
+                        self.nets_dict[each_PI].update_voltage(PI_signal_dict[each_PI].get_val(0))  
+                else:
+                    for each_gate in self.level_list[level]:
+                        self.gates_dict[each_gate].simulate(t_step) 
+                        # simulate the gate for this time step
+
+            # TODO: this may not be the best orgnization todo this, check later
+            # after simulation, check if all nets besides PI have settled
+            for each_net in (self.circuit_internal_nodes + self.output_nodes):
+                dV_of_this_net = self.nets_dict[each_net].voltage - self.nets_dict[each_net].voltage_just_now
+                slope = abs(dV_of_this_net/t_step)
+                #print slope
+                #print "th: " + str(initial_voltage_settle_threshold)
+                if (slope > initial_voltage_settle_threshold):
+                    all_nets_settled = False
+            #print all_nets_settled
+
+        # print initial conditions
+        print "initial conditions:"
+        for each_net in (self.circuit_internal_nodes + self.output_nodes):
+            print "{}: {:.4f}".format(each_net, self.nets_dict[each_net].voltage) 
+            # each_net +": " + str(self.nets_dict[each_net].voltage)
 
     
-    def simulate_step(self):
-        pass
+    def simulate_step(self, t):
+        t_step = self.config.T_STEP
+        signal = self.config.PI_signal_dict
+        init_vth = self.config.initial_voltage_settle_threshold
+
+        # TODO: why not iterate over levels themselves? 
+        for level in range(len(self.level_list)): # simulate ckt level by level
+            
+            if level == 0: # PIs
+                for each_PI in self.level_list[level]:
+                    self.nets_dict[each_PI].update_voltage(signal[each_PI].get_val(t))
+            else: 
+                for each_gate in self.level_list[level]:
+                    # event driven logic exist 
+                    # -- 1. here 
+                    # -- 2. in "logic_gate" class, "status" attribute.
+                    # 3. check_status function in each logic gate sub class.
+                    # 4. input_net_last_active_voltage attribute in each logic gate sub class.
+
+                    # this function check and set status of logic gates appropriatly
+                    # re-using voltage settle th. from initial voltage finding here. 
+                    # they very well could be the same, and defined in config file
+                    self.gates_dict[each_gate].check_status(t_step, init_vth)
+                    if (self.gates_dict[each_gate].status == "active") or (self.gates_dict[each_gate].status == "stabilising"):
+                        # simulate as usual
+                        self.gates_dict[each_gate].simulate(t_step)
+                    
+                    # else just skip the simulation
+                    # we can print out status of each gate at given time for debugging.
+                    # print each_gate + " " + gates_dict[each_gate].status
+
+                    # if event_driven is turned off as global setting:
+                    # gates_dict[each_gate].simulate(t_step)
+
 
 
     def simulate_signal(self):
-        pass
+        t_tot = self.config.T_TOT
+        t_step = self.config.T_STEP
+        signal = self.config.PI_signal_dict
+        init_vth = self.config.initial_voltage_settle_threshold
+
+        save_file = open(self.config.save_file_dir, "w")
+        save_file.write("# time")
+        for each_net in self.config.voltage_nodes_to_save:
+            save_file.write(" " + each_net)
+        save_file.write("\n")
+
+        print "simulating..."
+        for step_number in range(int(t_tot / t_step)):
+            t = step_number * t_step
+            # t_ps = t * 1e12  # just for readability
+            self.simulate_step(t)
+            
+            # save voltage of chosen nets
+            save_file.write(str(t))
+            for each_net in self.config.voltage_nodes_to_save:
+                save_file.write(","+ str(self.nets_dict[each_net].voltage))
+            save_file.write("\n")
+
+        save_file.close()
 
 
     def info(self):

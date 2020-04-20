@@ -242,7 +242,7 @@ def main(config_file_name):
     ############# INITIAL VALUES FOR CIRCUIT  #############
     #######################################################
     print "finding initial conditions..."
-    initial_voltage_settle_threshold = config.initial_voltage_settle_threshold
+    initial_voltage_settle_threshold = config_file.initial_voltage_settle_threshold
     all_nets_settled = False
     while (all_nets_settled == False):
         #print "finding initial conditions..."
@@ -336,8 +336,12 @@ if __name__ == '__main__':
         config_file = importlib.import_module(config_file_name)
         ckt = Circuit(verilog_path=config_file.verilog_netlist_dir, config=config_file)
         ckt.read_netlist()
-        pdb.set_trace()
-        main(sys.argv[1][:-3]) # -3 to strip out ".py"
+        ckt.levelize()
+        ckt.set_caps()
+        ckt.init_ckt()
+        ckt.simulate_signal()
+        # pdb.set_trace()
+        # main(sys.argv[1][:-3]) # -3 to strip out ".py"
 
 
 
