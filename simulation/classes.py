@@ -1,6 +1,7 @@
 # Author: haoge <haoge@usc.edu> at USC SPORT Lab
 
 from functions import *
+import re 
 
 class net:
     def __init__(self, name, initial_voltage, extra_cap_load = 0):
@@ -205,5 +206,151 @@ class NOR2(NAND2):
     # they have no difference in this simulation procedure
     # when creating gate instances, different LUT_and_boundary will be given to them, hence defineing their charactrstic
     pass
+
+
+class Circuit:
+
+    def __init__(self, verilog_path, config=None):
+        self.config = config
+        self.verilog_path = verilog_path
+
+    def read_netlist(self):
+        # open verilog netlist to read
+        print "reading netlist file..."
+        netlist_file = open(self.verilog_path, "r")
+        
+        self.nets_dict = dict()
+        self.gates_dict = dict()
+
+        # TODO: no idea what we are doing here, @Hao please check
+        # It seems we are just trying to know what LUT to load
+        #presence_detection and LUT loading TODO: could do this section in a more tidy way
+        LUT_name_front = self.config.LUT_bin_dir + self.config.TECH
+        LUT_name_back = "VL" + str(self.config.VL) + "_VH" + str(self.config.VH) + "_VSTEP" + \
+                str(self.config.VSTEP) + "_P" + str(self.config.PROCESS_VARIATION) + "_V" \
+                + str(self.config.VDD) + "_T" + str(self.config.TEMPERATURE) + ".lut"
+
+        presence_detection = dict()
+        sensitive_names = ["inv", "nand", "nor"]
+        for a_name in sensitive_names:
+            presence_detection[a_name] = False
+        for line in netlist_file:
+            for a_name in sensitive_names:
+                if a_name in line:
+                    presence_detection[a_name] = True
+        netlist_file.seek(0) # reset input file position cursor
+        
+        if presence_detection["inv"]:
+            #INV_LUT = load_LUT(LUT_dir["INV"])
+            INV_LUT = load_LUT(LUT_name_front + "_INV_" + LUT_name_back) # different style LUT loading
+        if presence_detection["nand"]:
+            #NAND2_LUT = load_LUT(LUT_dir["NAND2"])
+            NAND2_LUT = load_LUT(LUT_name_front + "_NAND2_" + LUT_name_back)
+        if presence_detection["nor"]:
+            #NOR2_LUT = load_LUT(LUT_dir["NOR2"])
+            NOR2_LUT = load_LUT(LUT_name_front + "_NOR2_" + LUT_name_back)
+
+        
+        # TODO: above object creation is only testing verion. it can not read nets if it's in multiple line in verilog.
+        # TODO: it cannot function correctly if gate is defined before net. don't know if it's allowed in verilog.
+        # TODO: it cannot detect nand2 from nand3, and only work for nand2 at this point
+        for line in netlist_file:
+            # step 1, create all net instances
+            if "input " in line:
+                line = re.split('\W+', line) # extract all words from line
+                input_nodes = line[1:-1] # primary input list
+                for each_net_name in input_nodes:
+                    self.nets_dict[each_net_name] = net(name=each_net_name, initial_voltage=0)
+            elif "output " in line:
+                line = re.split('\W+', line) # extract all words from line
+                output_nodes = line[1:-1]
+                for each_net_name in output_nodes:
+                    self.nets_dict[each_net_name] = net(name=each_net_name, initial_voltage=0)
+            elif "wire " in line:
+                line = re.split('\W+', line) # extract all words from line
+                circuit_internal_nodes = line[1:-1]
+                for each_net_name in circuit_internal_nodes:
+                    self.nets_dict[each_net_name] = net(name=each_net_name, initial_voltage=0)
+
+            # step 2, create all logic gates instances, pass net instance to gates, according to netlist
+            elif "inv" in line:
+                line = re.split('\W+', line) # extract all words from line
+                line = line[1:-1]
+                #print line
+                # 0 name, 1 output, 2 in_A, 3 in_B
+                gate_name        = line[0]
+                output_net_name  = line[1]
+                input_net_name = line[2]
+                # note: output net and input net instance are passed in as argument here
+                self.gates_dict[gate_name] = INV(name=gate_name, LUT_and_boundary=INV_LUT,
+                                              output_net=self.nets_dict[output_net_name],
+                                              input_net=self.nets_dict[input_net_name])
+
+            elif "nand" in line:
+                line = re.split('\W+', line) # extract all words from line
+                line = line[1:-1]
+                #print line
+                # 0 name, 1 output, 2 in_A, 3 in_B
+                gate_name        = line[0]
+                output_net_name  = line[1]
+                input_A_net_name = line[2]
+                input_B_net_name = line[3]
+                # note: output net and input net instance are passed in as argument here
+                self.gates_dict[gate_name] = NAND2(name=gate_name, LUT_and_boundary=NAND2_LUT,
+                                              output_net=self.nets_dict[output_net_name],
+                                              input_net_A=self.nets_dict[input_A_net_name] ,
+                                              input_net_B=self.nets_dict[input_B_net_name])
+
+            elif "nor" in line:
+                line = re.split('\W+', line) # extract all words from line
+                line = line[1:-1]
+                #print line
+                # 0 name, 1 output, 2 in_A, 3 in_B
+                gate_name        = line[0]
+                output_net_name  = line[1]
+                input_A_net_name = line[2]
+                input_B_net_name = line[3]
+                # note: output net and input net instance are passed in as argument here
+                self.gates_dict[gate_name] = NOR2(name=gate_name, LUT_and_boundary=NOR2_LUT,
+                                              output_net=self.nets_dict[output_net_name],
+                                              input_net_A=nets_dict[input_A_net_name] ,
+                                              input_net_B=nets_dict[input_B_net_name])
+
+
+    def  create_netlist(self):
+        pass
+
+
+    def attach_LUTs(self): 
+        pass
+
+    
+    def levelize(self):
+        pass
+
+
+    def set_caps(self):
+        pass
+
+
+    def init_ckt(self):
+        pass
+
+    
+    def simulate_step(self):
+        pass
+
+
+    def simulate_signal(self):
+        pass
+
+
+    def info(self):
+        print self.ckt_name
+
+
+
+
+
 
 

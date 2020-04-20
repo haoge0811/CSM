@@ -41,3 +41,6 @@ cap_value = 1e-16
 # saving options
 save_file_dir = "./output/voltage_save.csv"
 voltage_nodes_to_save = ["N22", "N23"]
+
+
+initial_voltage_settle_threshold = 0.00001/0.01e-12 

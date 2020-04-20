@@ -3,6 +3,8 @@
 import re
 import importlib # to import config file given name string
 from classes import *
+import pdb
+
 
 def main(config_file_name):
     # improting variable from config file
@@ -29,10 +31,15 @@ def main(config_file_name):
     # checked after this modification, original function not affected
 
 
+    ckt = Circuit(verilog_path="config_file.verilog_netlist_dir")
 
-    #def the_creator(verlog_netlist_dir): # this function create all instances that is going to be used for simulation.
+    ####################################
+    ######### READING VERILOG ##########
+    ####################################
+    # ckt.read_netlist() 
+    ####################################
+    ####################################
 
-    #verilog_netlist_dir = "./c17.v"
     # open verilog netlist to read
     print "reading netlist file..."
     netlist_file = open(verilog_netlist_dir, "r")
@@ -50,7 +57,10 @@ def main(config_file_name):
                 presence_detection[a_name] = True
     netlist_file.seek(0) # reset input file position cursor
 
-    # Load corresponding LUT
+
+    ##############################
+    ##### Load corresponding LUT
+    ##############################
     if presence_detection["inv"]:
         #INV_LUT = load_LUT(LUT_dir["INV"])
         INV_LUT = load_LUT(LUT_name_front + "_INV_" + LUT_name_back) # different style LUT loading
@@ -60,6 +70,9 @@ def main(config_file_name):
     if presence_detection["nor"]:
         #NOR2_LUT = load_LUT(LUT_dir["NOR2"])
         NOR2_LUT = load_LUT(LUT_name_front + "_NOR2_" + LUT_name_back)
+    ############################
+    ###########################
+
 
     for a_name in sensitive_names:
         if presence_detection[a_name]:
@@ -67,6 +80,16 @@ def main(config_file_name):
     #quit()
     # section end
     # checked function still correct after all this
+
+
+
+
+    ########################################################################
+    ############## READING THE NETLIST LINE BY LINE AND CREATING GATE DICT 
+    ########################################################################
+    # TODO: above object creation is only testing verion. it can not read nets if it's in multiple line in verilog.
+    # TODO: it cannot function correctly if gate is defined before net. don't know if it's allowed in verilog.
+    # TODO: it cannot detect nand2 from nand3, and only work for nand2 at this point
 
     for line in netlist_file:
         # step 1, create all net instances
@@ -130,11 +153,16 @@ def main(config_file_name):
                                           input_net_A=nets_dict[input_A_net_name] ,
                                           input_net_B=nets_dict[input_B_net_name])
 
-    # TODO above object creation is only testing verion. it can not read nets if it's in multiple line in verilog.
-    # it cannot function correctly if gate is defined before net. don't know if it's allowed in verilog.
-    # it cannot detect nand2 from nand3, and only work for nand2 at this point
 
+
+
+
+    ############################################
+    ###### LEVELIZATION OF CIRCUIT 
+    ###########################################
+    # TODO: @Hao just check if its working good here later
     # circuit levelization. input arguement to this block all gate and net instance. list of PI and all else nets.
+
     for each_net in input_nodes: # primary input list
         nets_dict[each_net].level = 0 # set to 0
     for each_net in (circuit_internal_nodes + output_nodes): # all other nodes
@@ -154,9 +182,7 @@ def main(config_file_name):
         # if no gate has updated its output net level during this iteration, then levlization is done
         if circuit_level_updated == False:
             break
-    # levelization end
-
-    # levelization recording
+    # levelization ends but needs to be recorded (?)
     # iterate through all gate again to get max level,
     # # and record all gate record all gate level according to their output net level
     # I choose to do this in th end hope to reduce comparison brough by max level recording in previous iterations.
@@ -178,67 +204,56 @@ def main(config_file_name):
         level_list[this_gate_level].append(gates_dict[each_gate].name) # put gates name in corresponding list
     # levelization recording end
 
-    # below is gold, pre-simulate Cin loaing iteration
+
+
+    ######################################################
+    ############## LOAD CAP of each GATE #################
+    ######################################################
+    # TODO: this is just initializing a value for CL of each gate ...
+    # ... to not have zero value. This can be changed to Cout of itself.  
+    # below is GOLD, pre-simulate Cin loaing iteration
     # run all gates at 0 time just to get cap_load value on nets populated.
     for each_gate in gates_dict.keys():
         gates_dict[each_gate].simulate(just_update_CI=True)
-    # above is gold
 
-    # added section for load all PO
+    
+
+    #######################################################
+    ############ LOAD CAP of PRIMARY OUTPUTs #############
+    #######################################################
     if (config_file.load_all_PO == True):
         final_output_load = dict()
         for each_net in output_nodes:
             final_output_load[each_net] = config_file.cap_value
     else:
         final_output_load = config_file.final_output_load
-    # section end
 
-
-
-    #CL = nets_dict["N22"].sum_CL()
-    #print CL
-    # does not seem to work. add cap load to all output nets, this fix the problem for CSM simulator not stable
+    # TODO: does not seem to work. ...
+    # ... add cap load to all output nets, this fix the problem for CSM simulator not stable
     for each_net in output_nodes:
         #nets_dict[each_net].extra_cap_load = 1e-16
         nets_dict[each_net].extra_cap_load = final_output_load[each_net]
     #CL = nets_dict["N22"].sum_CL()
     #print CL
+    
 
-    # extra setting, save voltage to file
-    #save_file = open("./voltage_save.csv", "w")
 
-    # let's get on with the actual simulation
-    #t_tot = 300e-12
-    #t_step = 0.01e-12
-
-    # remember to get signal to PI
-    #PI_signal_dict = {
-    #    "N1":Signal(mode = "constant", constant=0.7),
-    #    "N2":Signal(mode = "constant", constant=0.0),
-    #    "N3":Signal(mode = "constant", constant=0.7),
-    #    "N6":Signal(mode = "constant", constant=0.0),
-    #    "N7":Signal(mode="ramp_lh", param={"vdd": 0.7, "t_0": 5e-12, "t_lh": 50e-12})}
-
-    #N22 stay at 1
-    #N23 will go up
-
-    # same way as CL pre-load, we can figure out the initial condition, by pre-simulaing the circuit before time 0, to wait until every
-    # voltage nodes settles.
-    # here we can add a configurable setup. if user degined initial condition in config file, we use that way. otherwise,
-    # pre-simulate and find out initial condition ourself
-    initial_voltage_settle_threshold = 0.00001/0.01e-12 # change < 0.00001 in 0.01 ps
+    #######################################################
+    ############# INITIAL VALUES FOR CIRCUIT  #############
+    #######################################################
     print "finding initial conditions..."
+    initial_voltage_settle_threshold = config.initial_voltage_settle_threshold
     all_nets_settled = False
     while (all_nets_settled == False):
         #print "finding initial conditions..."
         all_nets_settled = True
-        for level in range(len(level_list)):  # simulate circuit level by level, from PI to output
-            if level == 0:  # For Primary inputs
+        for level in range(len(level_list)):  # simulate circuit level by level 
+            if level == 0:  # Primary inputs
                 for each_PI in level_list[level]:
-                    nets_dict[each_PI].update_voltage(PI_signal_dict[each_PI].get_val(0))  # use the PI value at time 0
+                    nets_dict[each_PI].update_voltage(PI_signal_dict[each_PI].get_val(0))  
             else:
                 for each_gate in level_list[level]:
-                    gates_dict[each_gate].simulate(t_step)  # simulate the gate for this time step
+                    gates_dict[each_gate].simulate(t_step) # simulate the gate for this time step
         # TODO: this may not be the best orgnization todo this, check later
         # after simulation, check if all nets besides PI have settled
         for each_net in (circuit_internal_nodes + output_nodes):  # all other nodes
@@ -255,15 +270,17 @@ def main(config_file_name):
     for each_net in (circuit_internal_nodes + output_nodes):  # all other nodes
         print each_net +": " + str(nets_dict[each_net].voltage)
 
+    
+    #######################################################
+    ###################### CSM SIMULATION  ################
+    #######################################################
     save_file = open(save_file_dir, "w")
     # write heading
     save_file.write("# time")
     for each_net in voltage_nodes_to_save:
         save_file.write(" " + each_net)
     save_file.write("\n")
-    # write heading ends
 
-    # actual simulation
     print "simulating..."
     for step_number in range(int(t_tot / t_step)):
         t = step_number * t_step
@@ -303,6 +320,10 @@ def main(config_file_name):
 
     save_file.close()
 
+
+
+
+
 # if running stand alone
 if __name__ == '__main__':
     import sys
@@ -311,4 +332,20 @@ if __name__ == '__main__':
         print "Usage: python OOP_circuit_simulator.py config.py"
         print "config.py must be in same directory as simulator"
     else:
+        config_file_name = sys.argv[1][:-3]
+        config_file = importlib.import_module(config_file_name)
+        ckt = Circuit(verilog_path=config_file.verilog_netlist_dir, config=config_file)
+        ckt.read_netlist()
+        pdb.set_trace()
         main(sys.argv[1][:-3]) # -3 to strip out ".py"
+
+
+
+
+
+
+
+
+
+
+

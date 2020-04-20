@@ -5,6 +5,7 @@ import pickle
 # this function look up value from LUT using multi-dimension linear interpolation
 # current voltages is passed in as a dict. in order to have 1 function for all gates
 def read_LUT(LUT_and_boundary, GATE_NAME, voltages_now):
+    # TODO: let's just make sure we are not copying LUT here, its slow
     # un pack
     LUT=LUT_and_boundary["LUT"]
     V_L=LUT_and_boundary["V_L"]
