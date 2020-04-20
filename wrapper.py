@@ -1,3 +1,4 @@
+
 # Eda Yan <yidayan@usc.edu> -USC SPORT LAB
 # modified by Hao Ge
 # considering what Saeed suggested last week, 
@@ -12,7 +13,7 @@ import sys
 # according to Saeed's envision, it should
 
 # job 0
-# check the OOP_circuit_simulator config.py file, see if the LUT
+# check the simulator config.py file, see if the LUT
 # user asking exist, if not, call characterisaion tool to create it.
 sys.path.insert(1,'./simulation')
 #import config
