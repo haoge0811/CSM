@@ -1,4 +1,3 @@
-
 # Eda Yan <yidayan@usc.edu> -USC SPORT LAB
 # modified by Hao Ge
 # considering what Saeed suggested last week, 
@@ -13,18 +12,40 @@ import sys
 # according to Saeed's envision, it should
 
 # job 0
-# check the simulator config.py file, see if the LUT
+# check the OOP_circuit_simulator config.py file, see if the LUT
 # user asking exist, if not, call characterisaion tool to create it.
-sys.path.insert(1,'./simulation')
+sys.path.insert(1,'./simulation_csm')
 #import config
 config_file = importlib.import_module("config")
 
 VERILOG_FILE = config_file.verilog_netlist_dir
+VERILOG_FILE = VERILOG_FILE.replace('..', '.')
 SPICE_FILE = VERILOG_FILE.split("/")[-1]
 SPICE_FILE = SPICE_FILE.replace('.v', '.sp')
-
 owd = os.getcwd() # record original working directory
-os.chdir("./simulation")
+
+verilog_netlist_dir = config_file.verilog_netlist_dir
+verilog_name = verilog_netlist_dir.split('/')[3]
+cp_dir = './output/' + verilog_name
+spice_name = verilog_name.replace('.v','.sp')
+out_name = spice_name.replace('.sp','.out')
+replace_list = {"$$verilog_netlist_dir": verilog_netlist_dir,
+                "$$cp_dir": cp_dir,
+                "$$spice_name": spice_name,
+                "$$out_name": out_name}
+spice_simulator_file  = open("./simulation_spice/hspice_simulator.py", "r")
+spice_simulator_file_lines = spice_simulator_file.readlines()
+spice_simulator_file.close()
+spice_simulator_file  = open("./simulation_spice/hspice_simulator.py", "w")
+for line in spice_simulator_file_lines:
+    if "$$" in line:      # if this line is to be replaced
+        for k in replace_list:    # if an item is listed in input dictionary
+            if k in line: # then replace it with the dictionary value
+                line = line.replace(k, str(replace_list[k]))
+    spice_simulator_file.write(line)
+spice_simulator_file.close()
+
+#os.chdir("./simulation")
 # get all gate types in .v netlist
 gate_list = []
 gate_type_list = []
@@ -61,7 +82,7 @@ os.chdir(owd)
 if len(miss_gate) > 0:
     for gate in miss_gate:
         os.chdir("../characterisation")
-        characterisation.main(gate, config_file.VSTEP, "../modelfiles/PTM_MG/lstp/7nm_LSTP.pm", \
+        characterisation.main(gate, config_file.VSTEP, "../data/modelfiles/PTM_MG/lstp/7nm_LSTP.pm", \
                               fig_file.VDD, config_file.TEMPERATURE)
     os.chdir(owd)
 
@@ -69,25 +90,25 @@ if len(miss_gate) > 0:
 # job 1
 # read original verilog netlist and record all final outputs, so that final output loads 
 # can be added to them. This job should modify the final_output_load of config file
-print("reading verilog netlist, and get the final outputs information")
-#os.chdir("../HSPICE_simulation")
-sys.path.insert(1,'./HSPICE_simulation')
-from translator_from_verilog_to_spice_netlist import *
-circuit_output = translator_from_verilog_to_spice_netlist(\
-    "./simulation/"+VERILOG_FILE, "./HSPICE_simulation/" + SPICE_FILE)
+#print("reading verilog netlist, and get the final outputs information")
+#os.chdir("../hspice_simulator")
+#sys.path.insert(1,'./simulation_spice')
+#from translator_from_verilog_to_spice_netlist import *
+#circuit_output = translator_from_verilog_to_spice_netlist(\
+                 # VERILOG_FILE, "./hspice_simulator/" + SPICE_FILE)
 
 
 # job 2 
 # call OOP_circuit_simulator in simulation folder
-os.chdir("./simulation")
-os.system("python OOP_circuit_simulator.py config.py")
+os.chdir("./simulation_csm")
+os.system("python simulator.py config.py")
 os.chdir(owd)
 
 # job 3
 # translate CSM_config file to spice .sp file
 # call hspice and run equivalent.
-os.sys("cp ./simulation/config.py ./HSPICE_simulation/config.py")
-os.chdir("./HSPICE_simulation")
+#os.system("cp ./simulation_csm/config.py ./simulation_spice/config.py")
+os.chdir("./simulation_spice")
 os.system("python hspice_simulator.py")
 os.chdir(owd)
 

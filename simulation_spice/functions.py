@@ -130,6 +130,8 @@ def generate_from_template(template_directory, output_directory, replace):
             for k in replace:    # if an item is listed in input dictionary
                 if k in line: # then replace it with the dictionary value
                     line = line.replace(k, str(replace[k]))
+        if ".subckt" in line:
+            line = line.replace(' n1 ', ' ')
         outfile.write(line)
 
     infile.close()

@@ -83,7 +83,7 @@ def translator_from_verilog_to_spice_netlist(verilog_file_name, spice_file_name)
                 d = gate_name.find('_') #index of '_'
                 gate_type = gate_name[:d]
                 gate_input = gate_input.replace(',','')
-                fout.writelines([gate_name, '  ', 'hi  ', '0  ', \
+                fout.writelines(['X', gate_name, '  ', 'hi  ', '0  ', \
                                                 gate_input, '    ', gate_output, '    ', gate_type.upper(), '\n'])
 
         fout.writelines('\n')

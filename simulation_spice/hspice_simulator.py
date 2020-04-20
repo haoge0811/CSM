@@ -11,12 +11,15 @@ from functions import *
 def main(config_file_name):
     config = importlib.import_module(config_file_name)
     verilog_netlist_dir = config.verilog_netlist_dir
+    verilog_name = verilog_netlist_dir.split('/')[3]
+    cp_dir = './output/' + verilog_name
     #save_file_dir = config_file.save_file_dir
     #voltage_nodes_to_save = config_file.voltage_nodes_to_save
     
     #generate spice netlist from verilog netlist and modify it into spice_simulation_file
-    spice_file_dir = verilog_netlist_dir.replace('.v', '.sp')
-    output_list = translator_from_verilog_to_spice_netlist(verilog_netlist_dir, spice_file_dir)
+    spice_file_dir = cp_dir.replace('.v', '.sp')
+    os.system("cp ../data/ISCAS_85_verilog/c17.v ./output/c17.v")
+    output_list = translator_from_verilog_to_spice_netlist(cp_dir, spice_file_dir)
     spice_netlists = open(spice_file_dir, 'r')
     temp_netlist = spice_netlists.readlines()
     spice_netlists.close()
@@ -24,10 +27,10 @@ def main(config_file_name):
 
     # added by haoge start ------------------------------------------------------------------------------
     LIB_DIR_MAP = dict()
-    LIB_DIR_MAP["FINFET_7nm_HP"] = "../modelfiles/PTM_MG/hp/7nm_HP.pm"
-    LIB_DIR_MAP["FINFET_7nm_LSTP"] = "../modelfiles/PTM_MG/lstp/7nm_LSTP.pm"
-    LIB_DIR_MAP["MOSFET_16nm_HP"] = "../modelfiles/PTM_MOSFET/16nm_HP.pm"
-    LIB_DIR_MAP["MOSFET_16nm_LP"] = "../modelfiles/PTM_MOSFET/16nm_LP.pm"
+    LIB_DIR_MAP["FINFET_7nm_HP"] = "../data/modelfiles/PTM_MG/hp/7nm_HP.pm"
+    LIB_DIR_MAP["FINFET_7nm_LSTP"] = "../data/modelfiles/PTM_MG/lstp/7nm_LSTP.pm"
+    LIB_DIR_MAP["MOSFET_16nm_HP"] = "../data/modelfiles/PTM_MOSFET/16nm_HP.pm"
+    LIB_DIR_MAP["MOSFET_16nm_LP"] = "../data/modelfiles/PTM_MOSFET/16nm_LP.pm"
 
     LIB_DIR = LIB_DIR_MAP[config.TECH]
     # extract library related parameters from library header section
@@ -55,7 +58,7 @@ def main(config_file_name):
     # generate gate inventory
     owd = os.getcwd()  # record original working directory
     generate_from_template(template_directory = "./gate_gen/" + DEVICE_NAME + "_GATES.sp",
-                           output_directory   = "gate_inventory_gen.sp",
+                           output_directory   = "./output/gate_inventory_gen.sp",
                            replace = {"$$library": owd +"/"+ LIB_DIR,
                                       "$$lg_p": LIB_LEN, "$$lg_n": LIB_LEN,
                                       "$$w_n": LIB_WIDTH_N, "$$w_p": LIB_WIDTH_P,
@@ -140,6 +143,7 @@ def main(config_file_name):
     
     #call hspice and save output to .out file
     print('hsipce simulating...')
+    os.chdir("./output")
     os.system('hspice c17.sp > c17.out')
 
 main("config")
