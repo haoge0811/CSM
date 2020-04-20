@@ -21,9 +21,12 @@ Wrapper -- provided example wrapper (or shell) to operate the tool from top leve
 ## Explanation and usage:
 - characterisation   
     **Usage: there are 2 ways to call the characterisation tool**
-    - in linux command line type e.g: "python characterisation.py --gate_name NAND2 --VSTEP 0.05 \
+    ```sh
+    python characterisation.py --gate_name NAND2 --VSTEP 0.05 \
     --LIB_DIR ../modelfiles/PTM_MG/lstp/7nm_LSTP.pm --VDD 0.7 --TEMPERATURE 25"
-    see shell_command.sh for example
+    ```
+
+        see shell_command.sh for example
     - import the characterisation.py as a module in a top level python file. then use
     characterisation.main("NAND2", 0.05, "../modelfiles/PTM_MG/lstp/7nm_LSTP.pm", 0.7, 25.0)
     see char_top.py for example
