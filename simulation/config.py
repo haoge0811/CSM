@@ -3,10 +3,10 @@
 # command: python OOP_circuit_simulator.py config.py
 from functions import *
 
-verilog_netlist_dir = "./ISCAS_85_verilog/c17.v"
+verilog_netlist_dir = "../ISCAS_85_verilog/c17.v"
 
 # if LUT not exist, create it using characterzation process
-LUT_bin_dir = "../LUT_bin/"
+LUT_bin_dir = "/home/home2/visiting/mitsushij/data/CSM_data/LUT_bin/"
 # LUT selection. the following parameter determins which CSM model (LUT) will be loaded for simulation.
 TECH = "FINFET_7nm_LSTP"
 VDD = 0.7 # this is the vdd used during the creation of CSM model. it has nothing to do with the simulation vdd.
@@ -39,5 +39,5 @@ cap_value = 1e-16
 #final_output_load = {"N22": 1e-16, "N23": 1e-16}
 
 # saving options
-save_file_dir = "./voltage_save.csv"
+save_file_dir = "./output/voltage_save.csv"
 voltage_nodes_to_save = ["N22", "N23"]

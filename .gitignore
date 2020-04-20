@@ -10,4 +10,5 @@
 /simulation/OOP_test.py
 /simulation/general_test.py
 
+/simulation/output/*
 *.pyc
