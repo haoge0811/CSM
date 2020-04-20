@@ -11,4 +11,5 @@
 /simulation/general_test.py
 
 /simulation/output/*
+/HSPICE_simulation/output/*
 *.pyc
