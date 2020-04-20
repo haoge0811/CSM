@@ -1,6 +1,25 @@
 
-## Introduction and structure of program:
-The CSM platform has two main parts: characterisation and simulation.
+## Current Source Model (CSM) Circuit Simulation Platform and neural networks accelerator (CSM-NN \& NN-PARS)
+*Curent surce models* (CSMs) use voltage-dependent current sources and possibly voltage-dependent capacitances to model logic cells. In addition to higher accuracy, another advantage of CSM over voltage based look up table (LUT) models is the ability to simulate realistic waveforms for arbitrary input signals and provide the output waveforms. The main disadvantage of using CSM in simulation of circuits is high latency of CSM-parameter retrieval from memory. 
+
+This platform is the result of our research on accelerating CSM circuit simulation taking advantage of NNs and GPU parallel computation. 
+
+
+<cite>[**The System Power Optimization and Regulation Technology (SPORT) Lab**][1]</cite>** 
+
+**Publication:** <br />
+<cite>[NN-PARS: A Parallelized Neural Network Based Circuit Simulation Framework, ISQED 2020][3]</cite>  <br />
+<cite>[CSM-NN: Current Source Model Based Logic Circuit Simulation - A Neural Network Approach, ICCD 2019][2]</cite>  <br />
+<cite>[Accurate Timing and Noise Analysis of Combinational and Sequential Logic Cells Using CSMs, TVLSI 2011][4]</cite><br />
+<cite>[A Current-based Method for Short Circuit Power Calculation under Noisy Input Waveforms, ASP-DAC 2007][5]</cite> <br />
+<cite>[Statistical logic cell delay analysis using a current-based model, DAC 2006][6]</cite>  <br />
+
+[1]: http://sportlab.usc.edu/ 
+[2]: https://arxiv.org/abs/2002.05291
+[3]: https://arxiv.org/abs/2002.05292
+[4]: https://ieeexplore.ieee.org/abstract/document/5393095
+[5]: https://ieeexplore.ieee.org/abstract/document/4196129
+[6]: https://dl.acm.org/doi/abs/10.1145/1146909.1146975
 
 ## General notes and software requirements
 - The CSM model of standard gates needs to be created before CSM simulation can be run.
