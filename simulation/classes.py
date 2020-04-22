@@ -1,6 +1,6 @@
 # Author: haoge <haoge@usc.edu> at USC SPORT Lab
 
-from functions import *
+from func_csm import *
 import re 
 import pdb
 
