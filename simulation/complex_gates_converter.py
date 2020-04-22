@@ -3,6 +3,10 @@
 # output file type : .v
 import re
 
+# this function reads a verilog file and detect whether there is any complex gate 
+# like XOR2, AND3, etc. If there is, it will convert them into a combination of 
+# NAND2, NOR2, INV, so that our CSM_simulator can simulate it since there only exists
+# LUT for these three basic gates
 def complex_gates_converter(verilog_file_name):
         fin = open (verilog_file_name,'r')
         f = fin.readlines()
@@ -29,6 +33,8 @@ def complex_gates_converter(verilog_file_name):
         input_flag = 0
         output_flag = 0
         wire_flag = 0
+
+        # read out information from verilog file including inputs, outputs, gates, wires
         for line in f:
                 if re.search('input', line[:6], re.IGNORECASE) or input_flag == 1:
                     input_flag = 1
@@ -66,6 +72,7 @@ def complex_gates_converter(verilog_file_name):
         output_line = [output_line1]
         wire_line = [wire_line1]
         
+        # find all complex gates
         for gate in gate_line:
                 if not (re.search('NAND2', gate[2:], re.IGNORECASE) or\
                         re.search('NOR2', gate[2:], re.IGNORECASE) or\
@@ -77,7 +84,8 @@ def complex_gates_converter(verilog_file_name):
         gate_to_be_added = []
         new_gate_num = 1
         node_to_be_added = []
-
+        
+        # based on the type of complex gate, generate multiple NOR2, NAND2, INV combinations for each
         for gate in complex_gate:
                 gate_to_be_deleted.append(gate)
                 gate_list = gate.split()
@@ -432,7 +440,7 @@ def complex_gates_converter(verilog_file_name):
         fout.close()
 
         
-complex_gates_converter('c880.v')
+#complex_gates_converter('c880.v')
 
 
 

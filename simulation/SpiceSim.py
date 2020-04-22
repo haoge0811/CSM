@@ -2,13 +2,12 @@
 import re
 import os
 import importlib
-from translator_from_verilog_to_spice_netlist import *
-from functions import *
-from ../data/
+from verilog2spice import *
+from func_spice import *
 
 # TODO: Saeed needs to fix this
 # Let it be the way it is now. 
-def get_mode_dict():
+def get_model_dict():
     LIB_DIR_MAP = dict()
     LIB_DIR_MAP["FINFET_7nm_HP"] = "../data/modelfiles/PTM_MG/hp/7nm_HP.pm"
     LIB_DIR_MAP["FINFET_7nm_LSTP"]="../data/modelfiles/PTM_MG/lstp/7nm_LSTP.pm"
@@ -20,14 +19,14 @@ def get_mode_dict():
 
 class SpiceSim:
     def __init__(self, config_file):
-    self.config = importlib.import_module(config_file_name)
-    self.out_dir = './output/' + verilog_name
-    self.LIB_DIR = get_model_dict()[self.config.TECH]
+        self.config = importlib.import_module(config_file)
+        self.out_dir = './output/'
+        self.LIB_DIR = get_model_dict()[self.config.TECH]
 
     def gen_sp_gates(self):
            
         # extract library related parameters from library header section
-        library_file = open(LIB_DIR, "r")
+        library_file = open(self.LIB_DIR, "r")
         # set some default value to None, 
         # since depending on MOSFET or FINFET, some value will not be provided
         LIB_WIDTH_N = None
@@ -52,22 +51,71 @@ class SpiceSim:
         library_file.close()
         
         owd = os.getcwd()  # record original working directory
-        template_dir = "./gate_gen/" + self.config.DEVICE_NAME + "_GATES.sp"
+        template_dir = "./gate_gen/" + self.config.TECH[0:6] + "_GATES.sp"
 
         generate_from_template(template_directory = template_dir, \
                 output_directory = self.out_dir + "gate_inventory_gen.sp", \
                 replace = {"$$library": owd +"/"+ self.LIB_DIR, "$$lg_p": LIB_LEN, "$$lg_n": LIB_LEN, "$$w_n": LIB_WIDTH_N, "$$w_p": LIB_WIDTH_P, "$$nfin":NFIN})
-         
+        
+        
+    def add_load_to_output(self, out_list):
+        #only add load to final outputs based on config file
+        load_str = []
+        load_str.append("* extra load at final output\n")
+        if self.config.load_all_PO == False:
+            sp_extra_output_load = self.config.final_output_load
+            i = 1
+            for key in sp_extra_output_load:
+                load_str.append("cL" + str(i) + " " + key + " 0 " + str(sp_extra_output_load[key]) + "\n")
+                i = i + 1
+        else:
+            spice_output_load = self.config.cap_value
+            i = 1
+            out_list = out_list[0].split()[1]
+            out_list = out_list.strip(';\n')
+            out_list = out_list.split(',')
+            for output in out_list:
+                load_str.append("cL" + str(i) + " " + output + " 0 " + str(spice_output_load) + "\n")
+                i = i + 1
+        load_str.append("\n")
+        return load_str
+        
+    def gen_input_signals(self):
+        #generate input signals
+        #use Piecewise Linear Source for ramp_lh or ramp_hl signals, and use DC Source for constant signals
+        input_signals = self.config.PI_signal_dict
+        input_str = []
+        input_str.append("* input signals\n")
+        for key in input_signals:
+            net_name = key
+            signal = input_signals[key]
+            if signal.mode == "constant":
+                input_str.append("V" + net_name + " " + net_name + " 0 " + str(signal.constant) + "\n")
+            elif signal.mode == "ramp_lh":
+                input_str.append("V" + net_name + " " + net_name + " 0 " + "pwl "\
+                                 + "0ps" + " 0 " + float2string(signal.param["t_0"]) + " 0 "\
+                                 + float2string(signal.param["t_lh"]) + " " + str(signal.param["vdd"]) + " "\
+                                 + float2string(self.config.T_TOT) + " " + str(signal.param["vdd"]) + "\n")
+            elif signal.mode == "ramp_hl":
+                input_str.append("V" + net_name + " " + net_name + " 0 " + "pwl ")
+                input_str.append("0ps " + str(signal.param["vdd"]) + " " + float2string(signal.param["t_0"]) + " " + str(signal.param["vdd"]) + " ")
+                input_str.append(float2string(signal.param["t_lh"]) + " 0 ")
+                input_str.append(float2string(self.config.T_TOT) + " 0\n")
+            else:
+                print(net_name, ":undefined input signal mode")
+        input_str.append("\n\n")
+        return input_str
+        
+        
     def gen_spice_from_verilog(self):
-    ''' generate spice netlist from verilog netlist 
-    modify it into spice_simulation_file
-    '''
-
-        v_path = self.config.VERILOG_DIR + "/" + self.config.CKT + ".v"
+        ''' generate spice netlist from verilog netlist 
+        modify it into spice_simulation_file
+        '''
+        v_path = self.config.VERILOG_DIR + self.config.CKT + ".v"
         sp_path = self.out_dir + "/" + self.config.CKT + ".sp"
         # TODO: check this with Eda
-        os.system("cp " + v_path + " " +  self.out_dir + "/")
-        v_path = self.out_dir + self.CKT + ".v"
+        os.system("cp " + v_path + " " +  self.out_dir)
+        v_path = self.out_dir + self.config.CKT + ".v"
         output_list = verilog2spice(v_path, sp_path)
 
         sp_infile = open(sp_path, 'r')
@@ -77,83 +125,61 @@ class SpiceSim:
         # .. but I'm not sure
         sp_infile = open(sp_path, 'w')
     
-        self.gen_gates()
+        self.gen_sp_gates()
 
         #add simulation conditions to spice file
 
         sp_infile.writelines(["* Eda Yan\n", "* USC - SPORT LAB\n"])
-        sp_infile.write(".option NOMOD")
-        sp_infile.write(".global vdd")
-        sp_infile.write(".param vdd=" + self.config.VDD)
+        sp_infile.write(".option NOMOD\n")
+        sp_infile.write(".global vdd\n")
+        sp_infile.write(".param vdd=" + str(self.config.VDD) + "\n")
         sp_infile.write(".include \'./gate_inventory_gen.sp\'") # TODO: hard coded
         sp_infile.write("\n\n\n")
-
+        
+        #add spice netlist to spice file
         for line in temp_netlist:
             sp_infile.writelines([line])
-        
-        #only add load to final outputs
-        sp_infile.writelines(["* extra load at final output\n"])
-        if config.load_all_PO == False:
-            spice_extra_output_load = config.final_output_load
-            i = 1
-            for key in spice_extra_output_load:
-                sp_infile.writelines(["cL", str(i), " ", key, " 0 ", str(spice_extra_output_load[key]), "\n"])
-                i = i + 1
-        else:
-            spice_output_load = config.cap_value
-            i = 1
-            output_list = output_list[0].split()[1]
-            output_list = output_list.strip(';\n')
-            output_list = output_list.split(',')
-            for output in output_list:
-                sp_infile.writelines(["cL", str(i), " ", output, " 0 ", str(spice_output_load), "\n"])
-                i = i + 1
-        sp_infile.writelines(["\n"])
-        
-        #generate input signals
-        #use Piecewise Linear Source for ramp_lh or ramp_hl signals, and use DC Source for constant signals
-        input_signals = config.PI_signal_dict
-        sp_infile.writelines(["* input signals\n"])
-        for key in input_signals:
-            net_name = key
-            signal = input_signals[key]
-            if signal.mode == "constant":
-                sp_infile.writelines(["V", net_name, " ", net_name, " 0 ", str(signal.constant), "\n"])
-            elif signal.mode == "ramp_lh":
-                sp_infile.writelines(["V", net_name, " ", net_name, " 0 ", "pwl "])
-                sp_infile.writelines(["0ps", " 0 ", float2string(signal.param["t_0"]), " 0 "])
-                sp_infile.writelines([float2string(signal.param["t_lh"]), " ", str(signal.param["vdd"]), " "])
-                sp_infile.writelines([float2string(config.T_TOT), " ", str(signal.param["vdd"]), "\n"])
-            elif signal.mode == "ramp_hl":
-                sp_infile.writelines(["V", net_name, " ", net_name, " 0 ", "pwl "])
-                sp_infile.writelines(["0ps ", str(signal.param["vdd"]), " ", float2string(signal.param["t_0"]), " ", str(signal.param["vdd"]), " "])
-                sp_infile.writelines([float2string(signal.param["t_lh"]), " 0 "])
-                sp_infile.writelines([float2string(config.T_TOT), " 0\n"])
-            else:
-                print(net_name, ":undefined input signal mode")
-        sp_infile.writelines(["\n\n"])
         
         #spice_initial_conditions = NONE
         #let spice pre-simulation without initial conditions
         
-        spice_timing_step = ".tran " + float2string(config.T_STEP) + " " + float2string(config.T_TOT)
-        sp_infile.writelines([spice_timing_step, "\n", ".op", "\n"])
+        #add load to circuit outputs
+        load_str = self.add_load_to_output(output_list)
+        for string in load_str:
+            sp_infile.write(str(string))
+            
+        #add input signals to spice file
+        input_str = self.gen_input_signals()
+        for string in input_str:
+            sp_infile.write(str(string))
         
-        #print all inputs and outputs signals
+        #add timing step to spice file
+        sp_ts = ".tran " + float2string(self.config.T_STEP) + " " + float2string(self.config.T_TOT)
+        sp_infile.writelines([sp_ts, "\n", ".op", "\n"])
         
-        spice_print_list = []
+        #add information for printing signals
+        sp_print_list = []
         #for key in input_signals:
-        #    spice_print_list.append(key)
+        #    sp_print_list.append(key)
+        output_list = output_list[0].split()[1]
+        output_list = output_list.strip(';\n')
+        output_list = output_list.split(',')
         for output in output_list:
-            spice_print_list.append(output)
+            sp_print_list.append(output)
         sp_infile.writelines([".print "])
-        for item in spice_print_list:
+        for item in sp_print_list:
             sp_infile.writelines(["v(", item, ") "])
         sp_infile.writelines(["\n"])
         sp_infile.writelines([".end"])
         sp_infile.close()
 
     def simulate_hspice(self):
-        pass
+        print('hsipce simulating...')
+        self.gen_spice_from_verilog()
+        owd = os.getcwd()
+        os.chdir("./output")
+        os.system("hspice " + self.config.CKT + ".sp > " + self.config.CKT + ".out")
+        os.chdir(owd)
 
-
+ss = SpiceSim("config")
+ss.simulate_hspice()
