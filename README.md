@@ -110,4 +110,7 @@ The models available on this repo are from <cite>[Arizona State University (ASU)
 
 [7]: http://ptm.asu.edu/
 
-
+## TODO list (assigned on April 21st):
+- we need to have separate files for functions and classes, 
+- Signal is a class for itself, separate it for now in a single file
+- simulation-csm and simulation-spice should not be our main
