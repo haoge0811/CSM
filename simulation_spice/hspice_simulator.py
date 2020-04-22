@@ -130,8 +130,8 @@ def main(config_file_name):
     #print all inputs and outputs signals
     
     spice_print_list = []
-    for key in input_signals:
-        spice_print_list.append(key)
+    #for key in input_signals:
+    #    spice_print_list.append(key)
     for output in output_list:
         spice_print_list.append(output)
     spice_netlists.writelines([".print "])

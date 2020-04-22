@@ -113,7 +113,20 @@ os.system("python hspice_simulator.py")
 os.chdir(owd)
 
 # job 4
-# call Auto_Plotter to plot csm simulation result
-# todo: how to plot hspice output?
-#os.chdir("../CSM-master/Auto_Plotter")
-#os.system("python plot.py")
+# calculate similarity of two simulation results
+#os.chdir("./plotter")
+sys.path.insert(1,'./plotter')
+from data_trim_ref import *
+from sim_calculator import *
+spice_out_dir = "./simulation_spice/output/" + verilog_name.replace('.v', '.out')
+spice_wv_dir = "./simulation_spice/output/" + verilog_name.replace('.v', '_spice.wv')
+data_trim_ref(spice_out_dir, spice_wv_dir)
+
+char_list = {"saved_voltage": config_file.voltage_nodes_to_save,
+             "vdd": config_file.VDD}
+csm_wv_dir = "./simulation_csm/output/voltage_save.csv"
+sim_calculator(csm_wv_dir, spice_wv_dir, char_list)
+
+
+
+
