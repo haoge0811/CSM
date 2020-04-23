@@ -1,7 +1,12 @@
-def data_trim_ref(spice_out_dir, spice_data_dir):
+'''
+this function reads the .out of hspice simulation, and extract the 
+waveform data of outputs we need to calculate similarity of spice
+result and CSM result
+'''
+def data_trim_ref(sp_out_path, sp_wv_path):
     # trim data
-    infile_spice = open(spice_out_dir, 'r')
-    outfile_spice = open(spice_data_dir, 'w')
+    infile_spice = open(sp_out_path, 'r')
+    outfile_spice = open(sp_wv_path, 'w')
     record_flag = 0
     skip_counter = 0
     for line in infile_spice:

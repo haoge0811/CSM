@@ -2,6 +2,10 @@ import os
 import sys
 import numpy as np
 
+'''
+This function reads both csm_waveform data and spice_waveform data, 
+calculate the similarity of every output voltage of them and print out 
+'''
 def sim_calculator(csm_wv_dir, spice_wv_dir, char_list):
     #Calculate wave similarity
 
