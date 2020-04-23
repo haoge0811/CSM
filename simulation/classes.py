@@ -49,22 +49,31 @@ class LUT:
         for v, k in enumerate(points):
             assert v < self.low[k] or v > self.high[k], "out of bound"
 
+
+
+
+
+    def interpolation(mat, a):
+
+        if len(a) == 2:
+            val = a_Vin * a_Vout * mat[0, 0] + (1 - a_Vin) * a_Vout * mat[1, 0] + \
+                  a_Vin * (1 - a_Vout) * mat[0, 1] + (1 - a_Vin) * (1 - a_Vout) * mat[1, 1]
+
+
+    def get_hypercube(values, low, step):
+        idx_low = [0] * self.dim
+        val_low = [0] * self.dim
+        slope = [0] * self.dim
         mat = np.zeros((self.dim, 2))
-
-
-
-    
-
-    def get_hypercube(val, low, step):
-        # since it's low_idx, we should use floor instead of round
-        idx_low = int(np.floor((val - low) / step))
-
-        # floored voltage value to closest LUT stored voltage value
-        val_low = (idx_low * step) + low
-
-        # deviation factor for interpolation
-        a_voltage = ((voltage - voltage_low) / VSTEP)
-        return (voltage_low_idx, a_voltage)
+        for dim, v in enumerate(values):
+            idx_low[dim] = int(np.floor((val[dim] - low[dim]) / step[dim]))
+            idx_high[dim] = int(np.ceil((val[dim] - low[dim]) / step[dim]))
+            val_low[dim] = (idx_low[dim] * step[dim]) + low[dim]
+            val_high[dim] = (idx_high[dim] * step[dim]) + low[dim]
+            mat[dim, 0] = val_low[dim]
+            mat[dim, 1] = val_high[dim] 
+            slope[dim] = (val[dim] - val_low[dim]) / step[dim]
+        return mat, slope
 
 
 class net:
