@@ -115,6 +115,24 @@ Explanation:
     The config.py file for SpiceSim is same with that for CSM simulation
     The output of Hspice simulation is saved in output folder with .out suffix.
 
+### Esim (similarity calculation tool)
+The Esim is to calculate the similarity between results of spice and CSM simulation. It is a class so user can call it like this:
+
+    ```sh
+    es = Esim("config")
+    es.data_extract()
+    es.Esim_calculate()
+    ```
+
+Note: the es and config file name is arbitrary. 
+
+Explanation: 
+    The Esim first reads the .out file of spice and extract the data part of it and writes into .wv file by 
+    function data_extract(), then by calling function Esim_calculate(), it will print out the similarity for
+    each output nodes between spice and CSM.
+    The config.py file for Esim is same with that for CSM and spice simulation
+    The output of Hspice simulation is saved in output folder with .out suffix.
+
 ### Look Up Tables (LUTs)
 User does NOT interact with this folder.
 This folder serves as a inventory of all the created CSM models, whether in the form of LUT or NN.
