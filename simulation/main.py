@@ -2,6 +2,8 @@
 
 import pdb
 import sys
+import argparse
+import importlib
 
 import classes
 from func_spice import print_header
@@ -15,7 +17,6 @@ if __name__ == '__main__':
     if -func or -f == "esim": calculate esim, given csm and spice waveforms
     a new argument -plot which plots the results, diff for diff -func
     '''
-    print sys.argv[1]
     parser = argparse.ArgumentParser()
     parser.add_argument('-func', type=str, required=True, help='Function')
     parser.add_argument('-conf', type=str, default="config.py", help='config file name')
@@ -24,8 +25,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     if args.func == "csm":
-        config_file = importlib.import_module(args.conf)
-        ckt = classes.Circuit(verilog_path=config_file.verilog_netlist_dir, config=config_file)
+        conf = importlib.import_module(args.conf[:-3])
+        v_path = conf.VERILOG_DIR + conf.CKT + ".v"
+        ckt = classes.Circuit(verilog_path=v_path, config=conf)
         ckt.read_netlist()
         ckt.levelize()
         ckt.set_caps()

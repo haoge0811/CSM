@@ -1,7 +1,9 @@
 # this config file is used by OOP circuit simulator
 # set simulation conditions in this file, then call OOP circuit simulator from terminal
 # command: python OOP_circuit_simulator.py config.py
-from functions import *
+
+# TODO: why do we need this? 
+from func_csm import Signal
 
 VERILOG_DIR = "../data/ISCAS_85_verilog/"
 CKT = "c17"
@@ -39,7 +41,7 @@ cap_value = 1e-16
 #final_output_load = {"N22": 1e-16, "N23": 1e-16}
 
 # saving options
-save_file_dir = "./output/voltage_save.csv"
+save_file_dir = "./output_csm/voltage_save.csv"
 voltage_nodes_to_save = ["N22", "N23"]
 
 SPICE_OUT_DIR="./output_spice/"

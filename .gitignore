@@ -12,3 +12,4 @@
 /simulation_csm/output/*
 /simulation_spice/output/*
 *.pyc
+*.swp

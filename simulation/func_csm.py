@@ -1,6 +1,7 @@
 # Author: haoge <haoge@usc.edu> at USC SPORT Lab
 import numpy as np
 import pickle
+import pdb 
 
 # this function look up value from LUT using multi-dimension linear interpolation
 # current voltages is passed in as a dict. in order to have 1 function for all gates
@@ -97,6 +98,7 @@ def load_LUT(LUT_dir):
 
     # extract V_L, V_H, VSTEP value from file name
     extracted_list = LUT_dir.split("_")
+    pdb.set_trace()
     for a_section in extracted_list:
         if "VL" in a_section:
             V_L = float(a_section[2:])

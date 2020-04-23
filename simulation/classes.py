@@ -5,6 +5,56 @@ import re
 import pdb
 
 
+
+class LUT:
+    def __init__(path):
+        load_LUT(path)
+
+
+    def load_LUT(path):
+        # TODO: params should not be based on the name. 
+        """Loads a saved LUT (by characterization) from pickle files
+        
+        arguments: 
+        path:   the LUT filename includes info of all the hyper-parameters, 
+        
+        assignments: 
+        lut:    dict of np.ndarray of different params
+        low:    dict of low values of each parameter lut
+        high    dict of high values of each paramter lut
+        step:   dict of the steps for each parameter
+
+        note: currently only supporting uniform characterization
+        thus only one step is being reported for each parameter
+        """
+        print ">] Loading LUT from " + path 
+        
+        data = pickle.load(open(LUT_dir, 'r'))
+        self.lut = data["lut"]
+        self.low = data["low"]
+        self.high = data["high"]
+
+
+        print "\tLUT loaded with keys: " + str(LUT.keys())
+        # extract V_L, V_H, VSTEP value from file name
+        extracted_list = LUT_dir.split("_")
+        for a_section in extracted_list:
+            if "low" in a_section:
+                self.V_L = float(a_section[2:])
+            if "high" in a_section:
+                self.V_H = float(a_section[2:])
+            if "VSTEP" in a_section:
+                self.VSTEP = float(a_section[5:])
+
+    def get_val(points):
+        """ returns the value of points for all parameters
+        points  dictionary of values of each dimention of LUT
+        curretnly only supprts interpolation, not extrapolation
+        """
+        for 
+
+        for 
+
 class net:
     def __init__(self, name, initial_voltage, extra_cap_load = 0):
         self.name = name

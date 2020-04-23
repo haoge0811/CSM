@@ -136,3 +136,26 @@ def generate_from_template(template_directory, output_directory, replace):
 
     infile.close()
     outfile.close()
+
+
+
+def print_header():
+    print "   _____    _____   __  __ "  
+    print "  / ____|  / ____| |  \/  |" 
+    print " | |      | (___   | \  / |" 
+    print " | |       \___ \  | |\/| |" 
+    print " | |____   ____) | | |  | |" 
+    print "  \_____| |_____/  |_|  |_|" 
+    print "      By USC SPORT-LAB    \n\n" 
+                           
+
+def print_header2():
+    print " ______       ______       __       ___"
+    print "/$$$$$$\      $$$$$$\      $$\      $$ |" 
+    print "|$$$$$$$\    $$  __$$\     $$$\    $$$ |" 
+    print "|$$/  \_|    $$ /  \__|    $$$$\  $$$$ |"
+    print "|$$|         \$$$$$$\      $$\$$\$$ $$ |"
+    print "|$$|          \____$$\     $$ \$$$  $$ |"
+    print "|$$|  $$\    $$\   $$ |    $$ |\$  /$$ |"
+    print "\$$$$$$ |    \$$$$$$  |    $$ | \_/ $$ |"
+    print " \_____/     \______/     \__|     \__|"
