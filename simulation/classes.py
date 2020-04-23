@@ -3,12 +3,13 @@
 from func_csm import *
 import re 
 import pdb
-
+import numpy as np
 
 
 class LUT:
     def __init__(path):
         load_LUT(path)
+        self.dim = len(self.dim_idx)
 
 
     def load_LUT(path):
@@ -33,27 +34,38 @@ class LUT:
         self.lut = data["lut"]
         self.low = data["low"]
         self.high = data["high"]
-
+        self.dim_idx = data["dim_idx"]
 
         print "\tLUT loaded with keys: " + str(LUT.keys())
         # extract V_L, V_H, VSTEP value from file name
-        extracted_list = LUT_dir.split("_")
-        for a_section in extracted_list:
-            if "low" in a_section:
-                self.V_L = float(a_section[2:])
-            if "high" in a_section:
-                self.V_H = float(a_section[2:])
-            if "VSTEP" in a_section:
-                self.VSTEP = float(a_section[5:])
-
+    
     def get_val(points):
         """ returns the value of points for all parameters
-        points  dictionary of values of each dimention of LUT
+
+        arguments:
+        points: dictionary of values of each dimention of LUT
         curretnly only supprts interpolation, not extrapolation
         """
-        for 
+        for v, k in enumerate(points):
+            assert v < self.low[k] or v > self.high[k], "out of bound"
 
-        for 
+        mat = np.zeros((self.dim, 2))
+
+
+
+    
+
+    def get_hypercube(val, low, step):
+        # since it's low_idx, we should use floor instead of round
+        idx_low = int(np.floor((val - low) / step))
+
+        # floored voltage value to closest LUT stored voltage value
+        val_low = (idx_low * step) + low
+
+        # deviation factor for interpolation
+        a_voltage = ((voltage - voltage_low) / VSTEP)
+        return (voltage_low_idx, a_voltage)
+
 
 class net:
     def __init__(self, name, initial_voltage, extra_cap_load = 0):
