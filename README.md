@@ -95,6 +95,26 @@ Explanation:
     of time, then call them in a shell script, just as H-spice.
     The output of voltage nodes is saved in csv format.
 
+### Spice simulation
+The SpiceSim is a class so user should first initialize it and call simulate_hspice() function of it to run the hspice simulation,
+For example: 
+
+    ```sh
+    ss = SpiceSim("config")
+    ss.simulate_hspice()
+    ```
+
+Note: the ss and config file name is arbitrary. 
+
+Explanation: 
+    The SpiceSim first reads out verilog circuit which is chosen by user by modify the CKT variable in config file, 
+    then it gets the simulation conditions, simulation parameters like tran-time, etc. Also technology and library model is setup.
+    Output loads and input signals set for simulation from config file and generate spice file with suffix .sp.
+    The SpiceSim also calls verilog2spice function, which is converting verilog format netlist into spice format netlist, 
+    and return the final outputs of the circuit to make it convenient to add capacitances on them.
+    The config.py file for SpiceSim is same with that for CSM simulation
+    The output of Hspice simulation is saved in output folder with .out suffix.
+
 ### Look Up Tables (LUTs)
 User does NOT interact with this folder.
 This folder serves as a inventory of all the created CSM models, whether in the form of LUT or NN.
