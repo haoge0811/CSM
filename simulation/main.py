@@ -6,6 +6,8 @@ import argparse
 import importlib
 
 import classes
+from SpiceSim import *
+from Esim import *
 from func_spice import print_header
 
 if __name__ == '__main__':
@@ -34,8 +36,26 @@ if __name__ == '__main__':
         ckt.init_ckt()
         ckt.simulate_signal()
     elif args.func == "spice":
-        pass
-
+        ss = SpiceSim(args.conf[:-3])
+        ss.simulate_hspice()
+    elif args.func == "esim":
+        es = Esim(args.conf[:-3])
+        es.data_extract()
+        es.Esim_calculate()
+    elif args.func == "esim-all":
+        conf = importlib.import_module(args.conf[:-3])
+        v_path = conf.VERILOG_DIR + conf.CKT + ".v"
+        ckt = classes.Circuit(verilog_path=v_path, config=conf)
+        ckt.read_netlist()
+        ckt.levelize()
+        ckt.set_caps()
+        ckt.init_ckt()
+        ckt.simulate_signal()
+        ss = SpiceSim(args.conf[:-3])
+        ss.simulate_hspice()
+        es = Esim(args.conf[:-3])
+        es.data_extract()
+        es.Esim_calculate()
     else:
         print "function argument not found"
 

@@ -18,23 +18,13 @@ def get_model_dict():
 
 
 class SpiceSim:
-    '''For Spice simulation;
-    including these functions:
-        gen_sp_gates(): generate sub-circuit for gates of circuit which is needed for .sp file
-        add_load_to_output(): based on config file, add capacitances on final outputs of circuit
-                              in spice file
-        gen_input_signals(): based on config file, generate constant or PWL signals on inputs
-        gen_spice_from_verilog(): reads .v file and based on config file, generate .sp file
-        simulate_hspice(): call hspice and save the result (.out file) into "/output" folder
-    '''
     def __init__(self, config_file):
         self.config = importlib.import_module(config_file)
-        self.out_dir = './output/'
+        self.out_dir = self.config.SP_DATA_DIR
         self.LIB_DIR = get_model_dict()[self.config.TECH]
 
     def gen_sp_gates(self):
-        '''gate sub-circuit generated for spice file
-        '''
+           
         # extract library related parameters from library header section
         library_file = open(self.LIB_DIR, "r")
         # set some default value to None, 
@@ -69,8 +59,7 @@ class SpiceSim:
         
         
     def add_load_to_output(self, out_list):
-        '''only add load to final outputs based on config file
-        '''
+        #only add load to final outputs based on config file
         load_str = []
         load_str.append("* extra load at final output\n")
         if self.config.load_all_PO == False:
@@ -92,9 +81,8 @@ class SpiceSim:
         return load_str
         
     def gen_input_signals(self):
-        '''generate input signals
-        use Piecewise Linear Source for ramp_lh or ramp_hl signals, and use DC Source for constant signals
-        '''
+        #generate input signals
+        #use Piecewise Linear Source for ramp_lh or ramp_hl signals, and use DC Source for constant signals
         input_signals = self.config.PI_signal_dict
         input_str = []
         input_str.append("* input signals\n")
@@ -124,7 +112,7 @@ class SpiceSim:
         modify it into spice_simulation_file
         '''
         v_path = self.config.VERILOG_DIR + self.config.CKT + ".v"
-        sp_path = self.out_dir + "/" + self.config.CKT + ".sp"
+        sp_path = self.out_dir + self.config.CKT + ".sp"
         # TODO: check this with Eda
         os.system("cp " + v_path + " " +  self.out_dir)
         v_path = self.out_dir + self.config.CKT + ".v"
@@ -189,7 +177,7 @@ class SpiceSim:
         print('hsipce simulating...')
         self.gen_spice_from_verilog()
         owd = os.getcwd()
-        os.chdir("./output")
+        os.chdir(self.out_dir)
         os.system("hspice " + self.config.CKT + ".sp > " + self.config.CKT + ".out")
         os.chdir(owd)
 

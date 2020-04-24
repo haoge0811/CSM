@@ -34,7 +34,7 @@ class Esim:
                     else:
                         line = line.split()
                         # convert si unit to e"notation"
-                        line = [self.string2float(t) for t in line]
+                        line = [string2float(t) for t in line]
                         line = [str(t) for t in line]
                         #
                         line = ' '.join(line)

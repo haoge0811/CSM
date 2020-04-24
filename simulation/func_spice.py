@@ -45,81 +45,22 @@ def float2string(s):
     elif ss[-4:] == 'e-18':
         ss = ss.replace('e-18', 'a')
     return ss
-	
-	
-class Signal:
-    time = 0
+    
+def string2float(s):
+    if s[-1] == 'm':
+        s = s.replace('m', 'e-3')
+    elif s[-1] == 'u':
+        s = s.replace('u', 'e-6')
+    elif s[-1] == 'n':
+        s = s.replace('n', 'e-9')
+    elif s[-1] == 'p':
+        s = s.replace('p', 'e-12')
+    elif s[-1] == 'f':
+        s = s.replace('f', 'e-15')
+    elif s[-1] == 'a':
+        s = s.replace('a', 'e-18')
+    return float(s)
 
-    # set default as None is user do not input
-    def __init__(self, mode, infile=None, param=None, constant=0):
-        self.mode = mode
-        self.param = param
-        self.constant = constant
-
-        # if user inputed infile name, then read up infile ot be an array
-        if (infile != None):
-            # open and read up csm input file as an object, later we can just query it
-            input_file = open(infile, "r")
-
-            # TODO: the structure of input array should allow interpolation when being queried
-            # so that the input file time step does not have to match the simulation time step
-            # input file can just be a piece wise linear source.
-            # for now let just assume it's the same time step
-
-            # empty array
-            time_array = []
-            v_in_array = []
-
-            for a_line in input_file:
-                # input file use # as comment sign
-                if (a_line[0] != "#"):
-                    a_line = a_line.split()
-                    a_line = [float(t) for t in a_line]
-
-                    time_array.append(a_line[0])
-                    # look at the last column, as we put Vout of previous gate there
-                    # previous Vout becomes v_in here
-                    v_in_array.append(a_line[-1])
-
-            # combine to be complete input array
-            # time array is stored for later interpolation purpose
-
-            self.input_array = [time_array, v_in_array]
-            input_file.close()
-
-        else:
-            self.input_array = None
-
-    def get_val(self, t):
-        if self.mode == "ramp_lh":
-            # 0 to vdd ramp, start at time t_0, rise finish at time config.T_DR_TRAN
-            if t < self.param["t_0"]:
-                sig = 0
-            elif t < (self.param["t_0"] + self.param["t_lh"]):
-                # linear up ramp
-                sig = self.param["vdd"] * (t - self.param["t_0"]) / self.param["t_lh"]
-            else:
-                sig = self.param["vdd"]
-            return sig
-        elif self.mode == "ramp_hl":
-            if t < self.param["t_0"]:
-                sig = self.param["vdd"]
-            elif t < (self.param["t_0"] + self.param["t_lh"]):
-                sig = self.param["vdd"] * (1 - (t - self.param["t_0"]) / self.param["t_lh"])
-            else:
-                sig = 0
-            return sig
-        elif self.mode == "from_file":
-            t_step = 0.01e-12  # should be the t_step of input file
-
-            index = int(np.round(t / t_step, 3))
-
-            sig = self.input_array[1][index]
-            return sig
-
-        elif self.mode == "constant":
-            sig = self.constant
-            return sig
 
 def generate_from_template(template_directory, output_directory, replace):
     infile  = open(template_directory, "r")
@@ -136,8 +77,6 @@ def generate_from_template(template_directory, output_directory, replace):
 
     infile.close()
     outfile.close()
-
-
 
 def print_header():
     print "   _____    _____   __  __ "  
