@@ -14,6 +14,6 @@ characterisation.main("NAND2", 0.05, "../modelfiles/PTM_MG/lstp/7nm_LSTP.pm", 0.
 '''
 import char_with_integrate_PVT
 
-char_with_integrate_PVT.main(("INV", 0.05, "../modelfiles/PTM_MG/lstp/7nm_LSTP.pm", 0.5, 0.9, 0.05, -25.0, 125.0, 25.0))
-#char_with_integrate_PVT.main(("NAND2", 0.05, "../modelfiles/PTM_MG/lstp/7nm_LSTP.pm", 0.5, 0.9, 0.05, -25.0, 125.0, 25.0))
-#char_with_integrate_PVT.main(("NOR2", 0.05, "../modelfiles/PTM_MG/lstp/7nm_LSTP.pm", 0.5, 0.9, 0.05, -25.0, 125.0, 25.0))
+char_with_integrate_PVT.main("INV", 0.05, "../data/modelfiles/PTM_MG/lstp/7nm_LSTP.pm", 0.5, 0.9, 0.05, -25.0, 125.0, 25.0)
+#char_with_integrate_PVT.main("NAND2", 0.05, "../data/modelfiles/PTM_MG/lstp/7nm_LSTP.pm", 0.5, 0.9, 0.05, -25.0, 125.0, 25.0)
+#char_with_integrate_PVT.main("NOR2", 0.05, "../data/modelfiles/PTM_MG/lstp/7nm_LSTP.pm", 0.5, 0.9, 0.05, -25.0, 125.0, 25.0)
