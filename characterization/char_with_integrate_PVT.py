@@ -25,7 +25,11 @@ def main(GATE_NAME, VSTEP, LIB_DIR, VDD_L, VDD_H, VDD_STEP, T_L, T_H, T_STEP):
                 for each_item in LUT.keys():
                     if (each_item != "header_info"): # extract data
                         # large LUT. VDD is first axis, T is second axis
-                        integrated_LUT[each_item] = np.ndarray((len(VDD_list), len(T_list)))
+                        LUT_shape = LUT[each_item].shape
+                        LUT_shape = list(LUT_shape)
+                        LUT_shape.extend([len(VDD_list), len(T_list)]) # adding 2 more dimensions.
+                        # by extend, VDD and TEMPERATURE are put as 2 last dimensions
+                        integrated_LUT[each_item] = np.ndarray(LUT_shape)
 
             # usual LUT opening
             #open LUT, put the entire LUT in temp dimension according position. vdd dimension according position
@@ -33,7 +37,12 @@ def main(GATE_NAME, VSTEP, LIB_DIR, VDD_L, VDD_H, VDD_STEP, T_L, T_H, T_STEP):
             T_idx    = int(np.round((TEMPERATURE - T_L  )/T_STEP  , 3))
             for each_item in LUT.keys():
                 if (each_item != "header_info"): # exclude header info
-                    integrated_LUT[each_item][VDD_idx][T_idx] = LUT[each_item]
+                    for coordiante, value in np.ndenumerate(LUT[each_item]):
+                        new_coordiante = list(coordiante)
+                        new_coordiante = [int(k) for k in new_coordiante]
+                        new_coordiante.extend([VDD_idx, T_idx])
+                        new_coordiante = tuple(new_coordiante)
+                        integrated_LUT[each_item][new_coordiante] = value
 
             # os remove the intermediate LUT to save space.
             os.sys("rm " + config.LUT_bin_dir + unique_id + ".lut")
