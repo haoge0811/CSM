@@ -110,8 +110,10 @@ Explanation:
     The SpiceSim first reads out verilog circuit which is chosen by user by modify the CKT variable in config file, 
     then it gets the simulation conditions, simulation parameters like tran-time, etc. Also technology and library model is setup.
     Output loads and input signals set for simulation from config file and generate spice file with suffix .sp.
+    
     The SpiceSim also calls verilog2spice function, which is converting verilog format netlist into spice format netlist, 
     and return the final outputs of the circuit to make it convenient to add capacitances on them.
+    
     The config.py file for SpiceSim is same with that for CSM simulation
     The output of Hspice simulation is saved in output folder with .out suffix.
 
@@ -130,8 +132,10 @@ Explanation:
     The Esim first reads the .out file of spice and extract the data part of it and writes into .wv file by 
     function data_extract(), then by calling function Esim_calculate(), it will print out the similarity for
     each output nodes between spice and CSM.
+    
     There is another function called Esim_calculate_without_config(self, wv_1, wv_2, vdd). It can calculate
     Esim without config file, given two waveform file and vdd.
+    
     The config.py file for Esim is same with that for CSM and spice simulation
     The output of Hspice simulation is saved in output folder with .out suffix.
 
