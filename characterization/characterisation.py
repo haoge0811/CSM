@@ -12,7 +12,7 @@ from functions import *
 # LIB_DIR = "../modelfiles/PTM_MOSFET/16nm_LP_TEMPLATE.pm" # input library
 # VDD = 0.9
 # TEMPERATURE = 25
-def main(GATE_NAME, VSTEP, LIB_DIR, VDD, TEMPERATURE):
+def main(GATE_NAME, VSTEP, LIB_DIR, VDD, TEMPERATURE, return_unique_id = 0):
     #################################### extract and setup some parameters ##########################################
     # extract library related parameters from library header section
     library_file = open(LIB_DIR, "r")
@@ -161,6 +161,9 @@ def main(GATE_NAME, VSTEP, LIB_DIR, VDD, TEMPERATURE):
         create_dir_if_not_exist(config.human_readable_LUT_dir)
         create_human_readable_LUT(LUT, config.human_readable_LUT_dir + unique_identifier + ".hlut",
                                   GATE_NAME, sweep_low, sweep_high, VSTEP)
+
+    if (return_unique_id == 1):
+        return unique_identifier
 
 # if running stand alone
 if __name__ == '__main__':
