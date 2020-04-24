@@ -87,13 +87,14 @@ Or, import the characterisation.py as a module in a top level python file and th
 Note: the config file name is arbitrary. 
 
 Explanation: 
-    The simulation tool uses the CSM model created in previous step to simulate a circuit in gate level.
-    It does simulation by solving differential equations for the gate in question, using components values
-    retrieved from LUT.
-    The config.py file very much like spice .sp file, describes the simulation setup, then the simulation
-    tool can be called to simulate this setup as described above. User can create many config file ahead 
-    of time, then call them in a shell script, just as H-spice.
-    The output of voltage nodes is saved in csv format.
+The simulation tool uses the CSM model created in previous step to simulate a circuit in gate level.
+It does simulation by solving differential equations for the gate in question, using components values
+retrieved from LUT.
+
+The config.py file very much like spice .sp file, describes the simulation setup, then the simulation
+tool can be called to simulate this setup as described above. User can create many config file ahead 
+of time, then call them in a shell script, just as H-spice.
+The output of voltage nodes is saved in csv format.
 
 ### Spice simulation
 The SpiceSim is a class so user should first initialize it and call simulate_hspice() function of it to run the hspice simulation,
@@ -107,15 +108,15 @@ For example:
 Note: the ss and config file name is arbitrary. 
 
 Explanation: 
-    The SpiceSim first reads out verilog circuit which is chosen by user by modify the CKT variable in config file, 
-    then it gets the simulation conditions, simulation parameters like tran-time, etc. Also technology and library model is setup.
-    Output loads and input signals set for simulation from config file and generate spice file with suffix .sp.
+The SpiceSim first reads out verilog circuit which is chosen by user by modify the CKT variable in config file, 
+then it gets the simulation conditions, simulation parameters like tran-time, etc. Also technology and library model is setup.
+Output loads and input signals set for simulation from config file and generate spice file with suffix .sp.
     
-    The SpiceSim also calls verilog2spice function, which is converting verilog format netlist into spice format netlist, 
-    and return the final outputs of the circuit to make it convenient to add capacitances on them.
+The SpiceSim also calls verilog2spice function, which is converting verilog format netlist into spice format netlist, 
+and return the final outputs of the circuit to make it convenient to add capacitances on them.
     
-    The config.py file for SpiceSim is same with that for CSM simulation
-    The output of Hspice simulation is saved in output folder with .out suffix.
+The config.py file for SpiceSim is same with that for CSM simulation
+The output of Hspice simulation is saved in output folder with .out suffix.
 
 ### Esim (similarity calculation tool)
 The Esim is to calculate the similarity between results of spice and CSM simulation. It is a class so user can call it like this:
@@ -129,15 +130,15 @@ The Esim is to calculate the similarity between results of spice and CSM simulat
 Note: the es and config file name is arbitrary. 
 
 Explanation: 
-    The Esim first reads the .out file of spice and extract the data part of it and writes into .wv file by 
-    function data_extract(), then by calling function Esim_calculate(), it will print out the similarity for
-    each output nodes between spice and CSM.
+The Esim first reads the .out file of spice and extract the data part of it and writes into .wv file by 
+function data_extract(), then by calling function Esim_calculate(), it will print out the similarity for
+each output nodes between spice and CSM.
     
-    There is another function called Esim_calculate_without_config(self, wv_1, wv_2, vdd). It can calculate
-    Esim without config file, given two waveform file and vdd.
+There is another function called Esim_calculate_without_config(self, wv_1, wv_2, vdd). It can calculate
+Esim without config file, given two waveform file and vdd.
     
-    The config.py file for Esim is same with that for CSM and spice simulation
-    The output of Hspice simulation is saved in output folder with .out suffix.
+The config.py file for Esim is same with that for CSM and spice simulation
+The output of Hspice simulation is saved in output folder with .out suffix.
 
 ### Look Up Tables (LUTs)
 User does NOT interact with this folder.
