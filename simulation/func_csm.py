@@ -98,7 +98,6 @@ def load_LUT(LUT_dir):
 
     # extract V_L, V_H, VSTEP value from file name
     extracted_list = LUT_dir.split("_")
-    pdb.set_trace()
     for a_section in extracted_list:
         if "VL" in a_section:
             V_L = float(a_section[2:])

@@ -3,15 +3,36 @@
 from func_csm import *
 import re 
 import pdb
+import numpy as np
+import itertools
 
+def _trick_char_nand2(temp):
+
+    data = dict()
+    data["low"] = [0] * 4# dict()
+    data["high"] = [0] * 4 # dict()
+    data["step"] = [0] * 4 # dict()
+    data["dim_idx"] = dict()
+    data["idx_dim"] = [0] * 4
+    data["lut"] = temp["LUT"]
+
+    for i, name in enumerate(["Va", "Vb", "Vn1", "Vo"]):
+        data["low"][i] = temp["V_L"]
+        data["high"][i] = temp["V_H"]
+        data["step"][i] = temp["VSTEP"]
+        data["dim_idx"][name] = i
+        data["idx_dim"][i] = name
+
+    return data
 
 
 class LUT:
-    def __init__(path):
-        load_LUT(path)
+    def __init__(self, path):
+        self.load(path)
+        self.dim = len(self.dim_idx)
 
 
-    def load_LUT(path):
+    def load(self, path):
         # TODO: params should not be based on the name. 
         """Loads a saved LUT (by characterization) from pickle files
         
@@ -23,37 +44,82 @@ class LUT:
         low:    dict of low values of each parameter lut
         high    dict of high values of each paramter lut
         step:   dict of the steps for each parameter
+        dim_udx:    dict ??? 
 
         note: currently only supporting uniform characterization
         thus only one step is being reported for each parameter
         """
+        
         print ">] Loading LUT from " + path 
         
-        data = pickle.load(open(LUT_dir, 'r'))
+        ###############################
+        # Here is a trick until Hao gives me the new pickle files
+        # data = pickle.load(open(path, 'r'))
+        temp = load_LUT(path)
+        data = _trick_char_nand2(temp) 
+        ###############################
+
         self.lut = data["lut"]
         self.low = data["low"]
         self.high = data["high"]
+        self.step = data["step"]
+        self.dim_idx = data["dim_idx"]
+        self.idx_dim = data["idx_dim"]
 
+        print "\tLUT loaded with keys: " + str(self.lut.keys())
+    
 
-        print "\tLUT loaded with keys: " + str(LUT.keys())
-        # extract V_L, V_H, VSTEP value from file name
-        extracted_list = LUT_dir.split("_")
-        for a_section in extracted_list:
-            if "low" in a_section:
-                self.V_L = float(a_section[2:])
-            if "high" in a_section:
-                self.V_H = float(a_section[2:])
-            if "VSTEP" in a_section:
-                self.VSTEP = float(a_section[5:])
-
-    def get_val(points):
-        """ returns the value of points for all parameters
-        points  dictionary of values of each dimention of LUT
+    def get_val(self, val, params=None):
+        # TODO: what should be data type of val?
+        """ returns the value of list of params at values val
+        based on interpolation on LUTs
         curretnly only supprts interpolation, not extrapolation
-        """
-        for 
+        code is dimension number independent. 
 
-        for 
+        arguments:
+        val:    values of each dimention of the LUT, ordered list
+        params: what parameters are required, all if None,
+
+        returns:
+        res:    dict of params with calculated values
+        """
+
+        params = self.lut.keys() if params == None else params
+
+        for idx, v in enumerate(val):
+            assert ((v >= self.low[idx]) or (v <= self.high[idx])), "out of bound"
+
+        indices, slope = self.get_hypercube(val)
+        slope = np.array([slope, [1-x for x in slope]]).T
+        slope = np.round(slope, 3).tolist()
+        indices = indices.tolist()
+        slope_expand = np.array(list(itertools.product(*slope)))
+        slope_coef = np.prod(slope_expand, axis=1)
+        res = dict()
+
+        for param in self.lut.keys():
+            dd = self.lut[param]
+            mat_expand = np.array([dd[x] for x in list(itertools.product(*indices))])
+            res[param] = np.sum(slope_coef* mat_expand)
+            print param, res[param]
+
+    def get_hypercube(self, val):
+        idx_low = [0] * self.dim
+        idx_high = [0] * self.dim
+        val_low = [0] * self.dim
+        val_high = [0] * self.dim
+        slope = [0] * self.dim
+        mat_idx = np.zeros((self.dim, 2), dtype=np.uint16)
+        for dim, v in enumerate(val):
+            idx_low[dim] = int(np.floor((val[dim] - self.low[dim]) / self.step[dim]))
+            idx_high[dim] = int(np.ceil((val[dim] - self.low[dim]) / self.step[dim]))
+            val_low[dim] = (idx_low[dim] * self.step[dim]) + self.low[dim]
+            val_high[dim] = (idx_high[dim] * self.step[dim]) + self.low[dim]
+            mat_idx[dim, 0] = idx_low[dim]
+            mat_idx[dim, 1] = idx_high[dim] 
+            slope[dim] = np.round((val[dim] - val_low[dim]) / self.step[dim], 3)
+        return mat_idx, slope
+
 
 class net:
     def __init__(self, name, initial_voltage, extra_cap_load = 0):
@@ -293,16 +359,26 @@ class Circuit:
         netlist_file.seek(0) # reset input file position cursor
         
         if presence_detection["inv"]:
-            #INV_LUT = load_LUT(LUT_dir["INV"])
-            INV_LUT = load_LUT(LUT_name_front + "_INV_" + LUT_name_back) # different style LUT loading
-        if presence_detection["nand"]:
-            #NAND2_LUT = load_LUT(LUT_dir["NAND2"])
-            NAND2_LUT = load_LUT(LUT_name_front + "_NAND2_" + LUT_name_back)
-        if presence_detection["nor"]:
-            #NOR2_LUT = load_LUT(LUT_dir["NOR2"])
-            NOR2_LUT = load_LUT(LUT_name_front + "_NOR2_" + LUT_name_back)
+            _path = LUT_name_front + "_INV_" + LUT_name_back
+            INV_LUT = load_LUT(_path) # different style LUT loading
+            _INV_LUT = LUT(_path)
 
+        if presence_detection["nand"]:
+            _path = LUT_name_front + "_NAND2_" + LUT_name_back
+            NAND2_LUT = load_LUT(_path)
+            _NAND2_LUT = LUT(_path)
+
+        if presence_detection["nor"]:
+            _path = LUT_name_front + "_NOR2_" + LUT_name_back
+            NOR2_LUT = load_LUT(_path)
+            _NOR2_LUT = LUT(_path)
         
+        # TODO @Hao: please look at the sample code below and change the code
+        # _path = NAND2_LUT = LUT_name_front + "_NAND2_" + LUT_name_back
+        # nand2 = LUT(_path)
+        # mat_idx, slope = nand2.get_hypercube([0.22, 0.313, 0.04, 0.543])
+        # nand2.get_val([0.22, 0.313, 0.04, 0.543])
+
         # TODO: above object creation is only testing verion. it can not read nets if it's in multiple line in verilog.
         # TODO: it cannot function correctly if gate is defined before net. don't know if it's allowed in verilog.
         # TODO: it cannot detect nand2 from nand3, and only work for nand2 at this point
