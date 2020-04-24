@@ -5,6 +5,8 @@
 # TODO: why do we need this? 
 from func_csm import Signal
 
+SP_DATA_DIR = './output_spice/'
+CSM_DATA_DIR = './output_csm/'
 VERILOG_DIR = "../data/ISCAS_85_verilog/"
 CKT = "c17"
 # if LUT not exist, create it using characterzation process
