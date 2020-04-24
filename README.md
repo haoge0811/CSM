@@ -130,6 +130,8 @@ Explanation:
     The Esim first reads the .out file of spice and extract the data part of it and writes into .wv file by 
     function data_extract(), then by calling function Esim_calculate(), it will print out the similarity for
     each output nodes between spice and CSM.
+    There is another function called Esim_calculate_without_config(self, wv_1, wv_2, vdd). It can calculate
+    Esim without config file, given two waveform file and vdd.
     The config.py file for Esim is same with that for CSM and spice simulation
     The output of Hspice simulation is saved in output folder with .out suffix.
 
