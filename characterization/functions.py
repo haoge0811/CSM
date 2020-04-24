@@ -301,7 +301,7 @@ def fill_nd_array(input_data_dict, GATE_NAME, V_L, V_H, VSTEP):
             # fill nd array
             I_out[Vin_idx, Vout_idx] = input_data_dict["i_mn"][a_row] + input_data_dict["i_mp"][a_row]
             I_Vin[Vin_idx, Vout_idx] = input_data_dict["i_vin"][a_row]
-        out_dict = {"I_out":I_out, "I_Vin":I_Vin}
+        out_dict = {"I_out":I_out, "I_Vin":I_Vin, "DIM_SEQ":["Vin", "Vout"]}
 
     elif (GATE_NAME == "NAND2") or (GATE_NAME == "NOR2"):
         # create 4D array
@@ -321,7 +321,7 @@ def fill_nd_array(input_data_dict, GATE_NAME, V_L, V_H, VSTEP):
             I_Vn1[Vna_idx, Vnb_idx, Vn1_idx, Vout_idx] = input_data_dict["i_n1"][a_row]
             I_Vna[Vna_idx, Vnb_idx, Vn1_idx, Vout_idx] = input_data_dict["i_vna"][a_row]
             I_Vnb[Vna_idx, Vnb_idx, Vn1_idx, Vout_idx] = input_data_dict["i_vnb"][a_row]
-        out_dict = {"I_out":I_out, "I_Vn1":I_Vn1, "I_Vna":I_Vna, "I_Vnb":I_Vnb}
+        out_dict = {"I_out":I_out, "I_Vn1":I_Vn1, "I_Vna":I_Vna, "I_Vnb":I_Vnb, "DIM_SEQ":["Vna", "Vnb", "Vn1", "Vout"]}
 
     else:
         print "Cannot fill n-dimensional array, Invalid or not yet implemented gate name."
@@ -355,7 +355,7 @@ def calculate_LUT(input_nd_array, GATE_NAME, dv2dt):
         # ref direction of iout_Vin is into Vin
         CI = (-iout_Vin/dv2dt - CM)
 
-        LUT = {"I_out_DC": I_out_DC, "CM": CM, "CO": CO, "CI": CI}
+        LUT = {"I_out_DC": I_out_DC, "CM": CM, "CO": CO, "CI": CI, "DIM_SEQ":input_nd_array["DC"]["DIM_SEQ"]}
 
     elif (GATE_NAME == "NAND2") or (GATE_NAME == "NOR2"):
         # calculate DC (current source) parameter
@@ -388,7 +388,7 @@ def calculate_LUT(input_nd_array, GATE_NAME, dv2dt):
         CI_B = (-iout_Vnb / dv2dt - CM_B)
 
         LUT = {"I_out_DC": I_out_DC, "I_inter_DC": I_inter_DC, "CM_A": CM_A, "CM_B": CM_B, "CO": CO, "CINT": CINT,
-               "CI_A": CI_A, "CI_B": CI_B}
+               "CI_A": CI_A, "CI_B": CI_B, "DIM_SEQ":input_nd_array["DC"]["DIM_SEQ"]}
 
     else:
         print "Cannot calculate_LUT, Invalid or not yet implemented gate name."

@@ -152,6 +152,14 @@ def main(GATE_NAME, VSTEP, LIB_DIR, VDD, TEMPERATURE, return_unique_id = 0):
     # PULSE (Vlow_start $$v_h t_delay $$t_rise $$t_rise 10ns 20ns)
     # hence there is the above calculation
 
+    # adding header information
+    LUT["header_info"] = {
+        "DEVICE_NAME":DEVICE_NAME, "TECH_NAME":TECH_NAME, "GATE_NAME":GATE_NAME,
+        "LUT_V_boundary_L":sweep_low, "LUT_V_boundary_H":sweep_high, "VSTEP":VSTEP,
+        "PROCESS":Vth_multiplier, "VDD":VDD, "TEMPERATURE":TEMPERATURE,
+        "DIM_SEQ":LUT["DIM_SEQ"]}
+    del LUT["DIM_SEQ"] # remove the old out of place DIM_SEQ information
+
     # Last step !! yeah! save LUT using pickle to LUT bin
     print("Dumping results to .lut file...")
     pickle.dump(LUT, open(config.LUT_bin_dir + unique_identifier + ".lut", 'w'))

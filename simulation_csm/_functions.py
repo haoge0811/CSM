@@ -29,13 +29,14 @@ def read_LUT(LUT_and_boundary, GATE_NAME, voltages_now):
 
         result = dict()
         for each_component_name in LUT.keys():
-            each_component = LUT[each_component_name]
-            # select a small section of LUT
-            mat = each_component[Vin_low_idx:Vin_low_idx + 2, Vout_low_idx:Vout_low_idx + 2]
-            # 2D linear interpolation
-            val = a_Vin * a_Vout * mat[0, 0] + (1 - a_Vin) * a_Vout * mat[1, 0] + \
-                  a_Vin * (1 - a_Vout) * mat[0, 1] + (1 - a_Vin) * (1 - a_Vout) * mat[1, 1]
-            result[each_component_name] = val
+            if (each_component_name != "header_info"):  # exclude header info
+                each_component = LUT[each_component_name]
+                # select a small section of LUT
+                mat = each_component[Vin_low_idx:Vin_low_idx + 2, Vout_low_idx:Vout_low_idx + 2]
+                # 2D linear interpolation
+                val = a_Vin * a_Vout * mat[0, 0] + (1 - a_Vin) * a_Vout * mat[1, 0] + \
+                      a_Vin * (1 - a_Vout) * mat[0, 1] + (1 - a_Vin) * (1 - a_Vout) * mat[1, 1]
+                result[each_component_name] = val
 
     elif (GATE_NAME == "NAND2") or (GATE_NAME == "NOR2"):
         (Vna_low_idx, a_Vna)   = get_interpolation_params(voltages_now["Vna"], V_L, VSTEP)
@@ -45,39 +46,40 @@ def read_LUT(LUT_and_boundary, GATE_NAME, voltages_now):
 
         result = dict()
         for each_component_name in LUT.keys():
-            each_component = LUT[each_component_name]
-            # select a section of table to output. Order of index terms need to match the order previously stored.
-            mat = each_component[Vna_low_idx:Vna_low_idx + 2, Vnb_low_idx:Vnb_low_idx + 2, Vn1_low_idx:Vn1_low_idx + 2,
-                  Vout_low_idx:Vout_low_idx + 2]
-            # 4D linear interpolation
-            val = 0
-            for D1 in range(2):
-                for D2 in range(2):
-                    for D3 in range(2):
-                        for D4 in range(2):
-                            if D1 == 0:
-                                param1 = (1 - a_Vna)
-                            else:
-                                param1 = a_Vna
-                            if D2 == 0:
-                                param2 = (1 - a_Vnb)
-                            else:
-                                param2 = a_Vnb
-                            if D3 == 0:
-                                param3 = (1 - a_Vn1)
-                            else:
-                                param3 = a_Vn1
-                            if D4 == 0:
-                                param4 = (1 - a_Vout)
-                            else:
-                                param4 = a_Vout
+            if (each_component_name != "header_info"):  # exclude header info
+                each_component = LUT[each_component_name]
+                # select a section of table to output. Order of index terms need to match the order previously stored.
+                mat = each_component[Vna_low_idx:Vna_low_idx + 2, Vnb_low_idx:Vnb_low_idx + 2, Vn1_low_idx:Vn1_low_idx + 2,
+                      Vout_low_idx:Vout_low_idx + 2]
+                # 4D linear interpolation
+                val = 0
+                for D1 in range(2):
+                    for D2 in range(2):
+                        for D3 in range(2):
+                            for D4 in range(2):
+                                if D1 == 0:
+                                    param1 = (1 - a_Vna)
+                                else:
+                                    param1 = a_Vna
+                                if D2 == 0:
+                                    param2 = (1 - a_Vnb)
+                                else:
+                                    param2 = a_Vnb
+                                if D3 == 0:
+                                    param3 = (1 - a_Vn1)
+                                else:
+                                    param3 = a_Vn1
+                                if D4 == 0:
+                                    param4 = (1 - a_Vout)
+                                else:
+                                    param4 = a_Vout
 
-                            partial_val = mat[D1, D2, D3, D4] * param1 * param2 * param3 * param4
-                            val += partial_val
-            # testing and comparing purposes
-            # val1 = mat.mean() # use mean value of matrix for test run
-            # print"\nmatrix_mean", val1, "      interpolate", val, "\n"
-            result[each_component_name] = val
+                                partial_val = mat[D1, D2, D3, D4] * param1 * param2 * param3 * param4
+                                val += partial_val
+                # testing and comparing purposes
+                # val1 = mat.mean() # use mean value of matrix for test run
+                # print"\nmatrix_mean", val1, "      interpolate", val, "\n"
+                result[each_component_name] = val
     else:
         print "Cannot read from LUT, Invalid or not yet implemented gate name."
     return result
