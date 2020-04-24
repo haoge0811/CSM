@@ -7,9 +7,9 @@ import os
 
 def main(GATE_NAME, VSTEP, LIB_DIR, VDD_L, VDD_H, VDD_STEP, T_L, T_H, T_STEP):
     VDD_list = np.linspace(VDD_L, VDD_H, int((VDD_H - VDD_L) / VDD_STEP) + 1)
-    VDD_list = [str(np.round(k, 2)) for k in VDD_list]
+    VDD_list = [np.round(k, 2) for k in VDD_list] # rounding
     T_list = np.linspace(T_L, T_H, int((T_H - T_L) / T_STEP) + 1)
-    T_list = [str(np.round(k, 2)) for k in T_list]
+    T_list = [np.round(k, 2) for k in T_list]
 
     integrated_LUT = None
 
