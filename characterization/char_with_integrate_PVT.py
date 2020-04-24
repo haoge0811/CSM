@@ -14,6 +14,8 @@ def main(GATE_NAME, VSTEP, LIB_DIR, VDD_L, VDD_H, VDD_STEP, T_L, T_H, T_STEP):
     integrated_LUT = None
 
     # to fix a bug, that higher VDD LUT size is larger than lower VDD LUT size, VDD is used high to low
+    # to fix the problem that they have different V_L V_H for diff VDD, use nominal VDD as ref to calculate overscan.
+    # and use a large over scan
     VDD_list.sort(reverse=True)
     for VDD in VDD_list:
         for TEMPERATURE in T_list:
@@ -56,7 +58,7 @@ def main(GATE_NAME, VSTEP, LIB_DIR, VDD_L, VDD_H, VDD_STEP, T_L, T_H, T_STEP):
     unique_id = "_".join(unique_id)
 
     # adding header information in large LUT
-    integrated_LUT["header_info"] = LUT[["header_info"]]
+    integrated_LUT["header_info"] = LUT["header_info"]
     # some modificatino in header info
     del integrated_LUT["header_info"]["PROCESS"]
     del integrated_LUT["header_info"]["VDD"]
