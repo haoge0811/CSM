@@ -13,6 +13,8 @@ def main(GATE_NAME, VSTEP, LIB_DIR, VDD_L, VDD_H, VDD_STEP, T_L, T_H, T_STEP):
 
     integrated_LUT = None
 
+    # to fix a bug, that higher VDD LUT size is larger than lower VDD LUT size, VDD is used high to low
+    VDD_list.sort(reverse=True)
     for VDD in VDD_list:
         for TEMPERATURE in T_list:
             unique_id = characterisation.main(GATE_NAME, VSTEP, LIB_DIR, VDD, TEMPERATURE, return_unique_id = 1)
@@ -45,7 +47,7 @@ def main(GATE_NAME, VSTEP, LIB_DIR, VDD_L, VDD_H, VDD_STEP, T_L, T_H, T_STEP):
                         integrated_LUT[each_item][new_coordiante] = value
 
             # os remove the intermediate LUT to save space.
-            os.sys("rm " + config.LUT_bin_dir + unique_id + ".lut")
+            os.system("rm " + config.LUT_bin_dir + unique_id + ".lut")
 
 
     # trimming the unique_id name
