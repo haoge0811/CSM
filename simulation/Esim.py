@@ -1,32 +1,18 @@
 import os
 import sys
 import importlib
+from func_spice import *
 import numpy as np
 
 class Esim:
     def __init__(self, config_file):
-        self.sp_data_dir = './output_spice/'
-        self.csm_data_dir = './output_csm/'
         self.config = importlib.import_module(config_file)
+        self.sp_data_dir = self.config.SP_DATA_DIR
+        self.csm_data_dir = self.config.CSM_DATA_DIR
         self.sp_out_path = self.sp_data_dir + self.config.CKT + '.out'
         self.sp_wv_path = self.sp_out_path.replace('.out', '.wv')
         # should this csm out name hardcoded ??
         self.csm_wv_path = self.csm_data_dir + 'voltage_save.csv'
-        
-    def string2float(self, s):
-        if s[-1] == 'm':
-            s = s.replace('m', 'e-3')
-        elif s[-1] == 'u':
-            s = s.replace('u', 'e-6')
-        elif s[-1] == 'n':
-            s = s.replace('n', 'e-9')
-        elif s[-1] == 'p':
-            s = s.replace('p', 'e-12')
-        elif s[-1] == 'f':
-            s = s.replace('f', 'e-15')
-        elif s[-1] == 'a':
-            s = s.replace('a', 'e-18')
-        return float(s)
         
     def data_extract(self):
         '''extract data from .out file of spice simulation into .wv'''
@@ -60,7 +46,7 @@ class Esim:
         outfile_spice.close()
     
     def Esim_calculate(self):
-    '''Calculate wave similarity given the path of csm and spice waveform data'''
+        '''Calculate wave similarity given the path of csm and spice waveform data'''
         print("\n# Output wave similarity calculation:\n# Mean of absolute point wise difference, nomalize by vdd value...\n")
         csm_infile   = open(self.csm_wv_path,"r")
         spice_infile = open(self.sp_wv_path,"r")
@@ -109,6 +95,66 @@ class Esim:
             similarity_Vout[i]  = 1 - mean_Vout[i]/vdd
             print("V" + self.config.voltage_nodes_to_save[i] + " similarity = %.4f%%\n" % (similarity_Vout[i]*100))
 
-#es = Esim("config")
-#es.data_extract()
-#es.Esim_calculate()
+    def Esim_calculate_without_config(self, wv_1, wv_2, vdd):
+        '''Calculate wave similarity given the path of any two waveform data files and vdd'''
+        print("\n# Output wave similarity calculation:\n# Mean of absolute point wise difference, nomalize by vdd value...\n")
+        wv_1_infile = open(wv_1,"r")
+        wv_2_infile = open(wv_2,"r")
+
+        line = wv_1_infile.readlines()[1]
+        if ',' in line:
+            num_of_voltage = len(line.split(',')[1:])
+        else:
+            num_of_voltage = len(line.split(' ')[1:])
+        
+        wv_1_infile.close()
+        wv_1_infile = open(wv_1,"r")
+        # read up data into array
+        wv_1_temp = []
+        wv_1_voltages = []
+        for line in wv_1_infile:
+            if (line[0] != "#"):
+                for i in range(num_of_voltage):
+                    Vouti_now = float(line.split(',')[i+1])
+                    wv_1_temp.append(Vouti_now)
+                wv_1_voltages.append(wv_1_temp)
+                wv_1_temp = []
+
+        wv_2_voltages = []
+        wv_2_temp = []
+        for line in wv_2_infile:
+            if (line[0] != "#"):
+                for i in range(num_of_voltage):
+                    Vouti_now = float(line.split()[i+1])
+                    wv_2_temp.append(Vouti_now)
+                wv_2_voltages.append(wv_2_temp)
+                wv_2_temp = []
+        
+        if (np.size(wv_1_voltages) < np.size(wv_2_voltages)):
+            wv_2_voltages = wv_2_voltages[:-1]
+        elif (np.size(wv_1_voltages) > np.size(wv_2_voltages)):
+            wv_1_voltages = wv_1_voltages[:-1]
+        
+        wv_1_infile.close()
+        wv_2_infile.close()
+
+        # similarity calculation
+        # convert to numpy array
+        wv_1_voltages = np.asarray(wv_1_voltages)
+        wv_2_voltages = np.asarray(wv_2_voltages)
+
+        # mean of absolute point wise difference, nomalize by vdd value
+        difference = np.subtract(wv_1_voltages, wv_2_voltages)
+        absolute   = np.absolute(difference)
+        mean_Vout = np.mean(absolute,axis=0)
+
+        similarity_Vout = [x for x in range(num_of_voltage)]
+        # best case mean = 0, similarity = 1. worst case, every point differs by vdd, similarity = 0.
+        for i in range(num_of_voltage):
+            similarity_Vout[i]  = 1 - mean_Vout[i]/vdd
+            print("V" + str(i) + " similarity = %.4f%%\n" % (similarity_Vout[i]*100))
+
+# es = Esim("config")
+# es.data_extract()
+# es.Esim_calculate()
+# es.Esim_calculate_without_config("./output_csm/voltage_save.csv", "./output_spice/c17.wv", 0.7)
