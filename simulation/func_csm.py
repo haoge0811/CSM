@@ -8,25 +8,26 @@ import pdb
 def read_LUT(LUT_and_boundary, GATE_NAME, voltages_now):
     # TODO: let's just make sure we are not copying LUT here, its slow
     # un pack
-    LUT=LUT_and_boundary["LUT"]
-    V_L=LUT_and_boundary["V_L"]
-    V_H=LUT_and_boundary["V_H"]
-    VSTEP=LUT_and_boundary["VSTEP"]
+    LUT=LUT_and_boundary.lut
+    V_L=LUT_and_boundary.low
+    V_H=LUT_and_boundary.high
+    VSTEP=LUT_and_boundary.step
+    DIM_IDX = LUT_and_boundary.dim_idx
 
     # sainity check for debug
     for each_voltage in voltages_now.keys():
-        if voltages_now[each_voltage] < V_L:
-            print("Error, \"" + each_voltage + "\" value for interpolation is out of lower bound...")
+        if voltages_now[each_voltage] < V_L[DIM_IDX[each_voltage]]:
+            print("Error, \"" + each_voltage + " voltage: " + str(voltages_now[each_voltage]) + "\" value for interpolation is out of lower bound...")
             print("Python exiting...")
             exit()
-        elif voltages_now[each_voltage] > V_H:
-            print("Error, \"" + each_voltage + "\" value for interpolation is out of upper bound...")
+        elif voltages_now[each_voltage] > V_H[DIM_IDX[each_voltage]]:
+            print("Error, \"" + each_voltage + " voltage: " + str(voltages_now[each_voltage]) + "\" value for interpolation is out of upper bound...")
             print("Python exiting...")
             exit()
 
     if (GATE_NAME == "INV"):
-        (Vin_low_idx, a_Vin)   = get_interpolation_params(voltages_now["Vin"], V_L, VSTEP)
-        (Vout_low_idx, a_Vout) = get_interpolation_params(voltages_now["Vout"], V_L, VSTEP)
+        (Vin_low_idx, a_Vin)   = get_interpolation_params(voltages_now["Vin"], V_L[0], VSTEP[0])
+        (Vout_low_idx, a_Vout) = get_interpolation_params(voltages_now["Vout"], V_L[1], VSTEP[1])
 
         result = dict()
         for each_component_name in LUT.keys():
@@ -39,10 +40,10 @@ def read_LUT(LUT_and_boundary, GATE_NAME, voltages_now):
             result[each_component_name] = val
 
     elif (GATE_NAME == "NAND2") or (GATE_NAME == "NOR2"):
-        (Vna_low_idx, a_Vna)   = get_interpolation_params(voltages_now["Vna"], V_L, VSTEP)
-        (Vnb_low_idx, a_Vnb)   = get_interpolation_params(voltages_now["Vnb"], V_L, VSTEP)
-        (Vn1_low_idx, a_Vn1)   = get_interpolation_params(voltages_now["Vn1"], V_L, VSTEP)
-        (Vout_low_idx, a_Vout) = get_interpolation_params(voltages_now["Vout"], V_L, VSTEP)
+        (Vna_low_idx, a_Vna)   = get_interpolation_params(voltages_now["Vna"], V_L[0], VSTEP[0])
+        (Vnb_low_idx, a_Vnb)   = get_interpolation_params(voltages_now["Vnb"], V_L[1], VSTEP[1])
+        (Vn1_low_idx, a_Vn1)   = get_interpolation_params(voltages_now["Vn1"], V_L[2], VSTEP[2])
+        (Vout_low_idx, a_Vout) = get_interpolation_params(voltages_now["Vout"], V_L[3], VSTEP[3])
 
         result = dict()
         for each_component_name in LUT.keys():

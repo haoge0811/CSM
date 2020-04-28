@@ -16,7 +16,7 @@ def _trick_char_nand2(temp):
     data["idx_dim"] = [0] * 4
     data["lut"] = temp["LUT"]
 
-    for i, name in enumerate(["Va", "Vb", "Vn1", "Vo"]):
+    for i, name in enumerate(["Vna", "Vnb", "Vn1", "Vout"]):
         data["low"][i] = temp["V_L"]
         data["high"][i] = temp["V_H"]
         data["step"][i] = temp["VSTEP"]
@@ -360,17 +360,17 @@ class Circuit:
         
         if presence_detection["inv"]:
             _path = LUT_name_front + "_INV_" + LUT_name_back
-            INV_LUT = load_LUT(_path) # different style LUT loading
+            #INV_LUT = load_LUT(_path) # different style LUT loading
             _INV_LUT = LUT(_path)
 
         if presence_detection["nand"]:
             _path = LUT_name_front + "_NAND2_" + LUT_name_back
-            NAND2_LUT = load_LUT(_path)
+            #NAND2_LUT = load_LUT(_path)
             _NAND2_LUT = LUT(_path)
 
         if presence_detection["nor"]:
             _path = LUT_name_front + "_NOR2_" + LUT_name_back
-            NOR2_LUT = load_LUT(_path)
+            #NOR2_LUT = load_LUT(_path)
             _NOR2_LUT = LUT(_path)
         
         # TODO @Hao: please look at the sample code below and change the code
@@ -410,7 +410,7 @@ class Circuit:
                 output_net_name  = line[1]
                 input_net_name = line[2]
                 # note: output net and input net instance are passed in as argument here
-                self.gates_dict[gate_name] = INV(name=gate_name, LUT_and_boundary=INV_LUT,
+                self.gates_dict[gate_name] = INV(name=gate_name, LUT_and_boundary=_INV_LUT,
                                               output_net=self.nets_dict[output_net_name],
                                               input_net=self.nets_dict[input_net_name])
 
@@ -424,7 +424,7 @@ class Circuit:
                 input_A_net_name = line[2]
                 input_B_net_name = line[3]
                 # note: output net and input net instance are passed in as argument here
-                self.gates_dict[gate_name] = NAND2(name=gate_name, LUT_and_boundary=NAND2_LUT,
+                self.gates_dict[gate_name] = NAND2(name=gate_name, LUT_and_boundary=_NAND2_LUT,
                                               output_net=self.nets_dict[output_net_name],
                                               input_net_A=self.nets_dict[input_A_net_name] ,
                                               input_net_B=self.nets_dict[input_B_net_name])
@@ -439,7 +439,7 @@ class Circuit:
                 input_A_net_name = line[2]
                 input_B_net_name = line[3]
                 # note: output net and input net instance are passed in as argument here
-                self.gates_dict[gate_name] = NOR2(name=gate_name, LUT_and_boundary=NOR2_LUT,
+                self.gates_dict[gate_name] = NOR2(name=gate_name, LUT_and_boundary=_NOR2_LUT,
                                               output_net=self.nets_dict[output_net_name],
                                               input_net_A=self.nets_dict[input_A_net_name] ,
                                               input_net_B=self.nets_dict[input_B_net_name])
