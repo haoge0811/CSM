@@ -1,0 +1,17 @@
+* "simulator" "HSPICE" 
+* "version" "O-2018.09-SP2-2 linux64"
+* "format" "HSP"
+* "rundate" "03:35:48 04/24/2020 "
+* "netlist" "spice_gen.sp "
+* "runtitle" "* hao ge <haoge@usc.edu>"
+* time =    0.            
+* temperature =  125.0000        
+*** BEGIN: Saved Operating Point ***                     
+.option 
++ gmindc=   1.0000p       
+.nodeset
++ hi = 500.0000m       
++ in =-250.0000m       
++ lo =   0.            
++ out =-300.0000m       
+***   END: Saved Operating Point ***                     

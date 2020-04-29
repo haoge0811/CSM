@@ -1,4 +1,4 @@
-.include 'C:\Users\GE\Desktop\USC\CSM\pycharm\CSM_dev\characterisation/../modelfiles/PTM_MG/lstp/7nm_LSTP.pm'
+.include '/home/home2/visiting/mitsushij/workspace/CSM/characterization/../data/modelfiles/PTM_MG/lstp/7nm_LSTP.pm'
 
 .subckt INV hi lo in out 
 mp1 (out in hi hi)  pfet nfin=1.0 l=1.1e-08  

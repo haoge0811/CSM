@@ -15,7 +15,7 @@ SP_EXTEND_RES = 20
 spice_template_dir = "./spice_templates/"
 
 #################################   Output save option and directory  ##########################################
-LUT_bin_dir = "../LUT_bin/"
+LUT_bin_dir = "/home/home2/visiting/mitsushij/data/CSM_data/LUT_bin/"
 # these files below can be use for debug. otherwise saving them cost in storage.
 # if set to yes(1), then os will copy spice temp out to its specific dir + name each specific analysis.
 save_spice_raw_char_output   = 1
