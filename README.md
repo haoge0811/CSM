@@ -4,9 +4,27 @@
 
 This platform is the result of our research on accelerating CSM circuit simulation taking advantage of NNs and GPU parallel computation. 
 
+## Developers and Affiliation: <br />
+The package was developed as a research project at <cite>[**The System Power Optimization and Regulation Technology (SPORT) Lab**][1]</cite> of University of Southern California (USC). <br />
+
+
+**Manager:** <br />
+<cite>[M. Saeed Abrishami][10]</cite>  <br />
+
+**Graduate Students:** *(equal contribution)* <br /> 
+Jiayi Wang <cite>[Linkedin][13]</cite>  <br />
+Yang Shen  <cite>[LinkedIn][14]</cite><br />
+Jiaming Li <cite>[LinkedIn][15]</cite> <br />
+Han Zhang  <cite>[LinkedIn][16]</cite>  <br />
+Shubo Li   <cite>[LinkedIn][17]</cite>  <br />
+
+**Advisors:** <br />
+<cite>[Prof. Massoud Pedram][11]</cite>  <br />
+<cite>[Prof. Shahin Nazarian][12]</cite>  <br />
+
+
 **Affiliation:** <br />
-<cite>[**The System Power Optimization and Regulation Technology (SPORT) Lab**][1]</cite> <br />
-University of Southern California (USC) 
+
 
 **Publication:** <br />
 <cite>[NN-PARS: A Parallelized Neural Network Based Circuit Simulation Framework, ISQED 2020][3]</cite>  <br />
