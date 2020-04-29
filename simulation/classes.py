@@ -6,7 +6,7 @@ import pdb
 import numpy as np
 import itertools
 
-def _trick_char_nand2(temp):
+def _trick_char_gate(temp, path):
 
     data = dict()
     data["low"] = [0] * 4# dict()
@@ -16,7 +16,11 @@ def _trick_char_nand2(temp):
     data["idx_dim"] = [0] * 4
     data["lut"] = temp["LUT"]
 
-    for i, name in enumerate(["Vna", "Vnb", "Vn1", "Vout"]):
+    if "_INV_" in path:
+        dim_name = ["Vin", "Vout"]
+    elif "_NAND2_" or "_NOR2_" in path:
+        dim_name = ["Vna", "Vnb", "Vn1", "Vout"]
+    for i, name in enumerate(dim_name):
         data["low"][i] = temp["V_L"]
         data["high"][i] = temp["V_H"]
         data["step"][i] = temp["VSTEP"]
@@ -44,7 +48,7 @@ class LUT:
         low:    dict of low values of each parameter lut
         high    dict of high values of each paramter lut
         step:   dict of the steps for each parameter
-        dim_udx:    dict ??? 
+        dim_idx:    dict ??? 
 
         note: currently only supporting uniform characterization
         thus only one step is being reported for each parameter
@@ -56,7 +60,7 @@ class LUT:
         # Here is a trick until Hao gives me the new pickle files
         # data = pickle.load(open(path, 'r'))
         temp = load_LUT(path)
-        data = _trick_char_nand2(temp) 
+        data = _trick_char_gate(temp, path)
         ###############################
 
         self.lut = data["lut"]
@@ -380,25 +384,38 @@ class Circuit:
         # nand2.get_val([0.22, 0.313, 0.04, 0.543])
 
         # TODO: above object creation is only testing verion. it can not read nets if it's in multiple line in verilog.
+        #       --Fixed by Eda
         # TODO: it cannot function correctly if gate is defined before net. don't know if it's allowed in verilog.
         # TODO: it cannot detect nand2 from nand3, and only work for nand2 at this point
+        in_flag = 0
+        out_flag = 0
+        wire_flag = 0
         for line in netlist_file:
             # step 1, create all net instances
-            if "input " in line:
+            if re.search('input', line[:6], re.IGNORECASE) or in_flag == 1:
+                in_flag = 1
                 line = re.split('\W+', line) # extract all words from line
                 self.input_nodes = line[1:-1] # primary input list
                 for each_net_name in self.input_nodes:
                     self.nets_dict[each_net_name] = net(name=each_net_name, initial_voltage=0)
-            elif "output " in line:
+                if ';' in line:
+                    in_flag = 0
+            elif re.search('output', line[:6], re.IGNORECASE) or out_flag == 1:
+                out_flag = 1
                 line = re.split('\W+', line) # extract all words from line
                 self.output_nodes = line[1:-1]
                 for each_net_name in self.output_nodes:
                     self.nets_dict[each_net_name] = net(name=each_net_name, initial_voltage=0)
-            elif "wire " in line:
+                if ';' in line:
+                    out_flag = 0
+            elif re.search('wire', line[:6], re.IGNORECASE) or wire_flag == 1:
+                wire_flag = 1
                 line = re.split('\W+', line) # extract all words from line
                 self.circuit_internal_nodes = line[1:-1]
                 for each_net_name in self.circuit_internal_nodes:
                     self.nets_dict[each_net_name] = net(name=each_net_name, initial_voltage=0)
+                if ';' in line:
+                    wire_flag = 0
 
             # step 2, create all logic gates instances, pass net instance to gates, according to netlist
             elif "inv" in line:
