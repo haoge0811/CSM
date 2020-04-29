@@ -11,7 +11,7 @@ The package was developed as a research project at <cite>[**The System Power Opt
 **Lead PhD student:** <br />
 <cite>[M. Saeed Abrishami][10]</cite>  <br />
 
-**Graduate Students:** *(equal contribution)* <br /> 
+**Graduate Students:** <br /> 
 Hao Ge <cite>[Linkedin][13]</cite>  <br />
 Eda YAn <cite>[LinkedIn][14]</cite><br />
 
