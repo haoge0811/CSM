@@ -9,6 +9,11 @@ import os
 import importlib
 import sys
 
+
+##### TODO: ######
+# We just need to write a wrapper that generates all the results at once
+
+
 # according to Saeed's envision, it should
 
 # job 0
