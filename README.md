@@ -20,8 +20,13 @@ Eda YAn <cite>[LinkedIn][14]</cite><br />
 <cite>[Prof. Shahin Nazarian][12]</cite>  <br />
 
 
-**Affiliation:** <br />
 
+[1]: http://sportlab.usc.edu/ 
+[10]: http://sportlab.usc.edu/~msabrishami/
+[11]: http://sportlab.usc.edu/~shahin/
+[12]: http://www.mpedram.com/
+[13]: https://www.linkedin.com/in/hao-ge-619154194/
+[14]: https://www.linkedin.com/in/yida-yan-489b06191/
 
 **Publication:** <br />
 <cite>[NN-PARS: A Parallelized Neural Network Based Circuit Simulation Framework, ISQED 2020][3]</cite>  <br />
