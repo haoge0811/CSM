@@ -183,7 +183,7 @@ class Gate: # TODO: Saeed add doc for this as an example to Eda
     def update_level(self):
         raise NotImplementedError
    
-    def check_status(self, t_step, settle_th)
+    def check_status(self, t_step, settle_th):
         raise NotImplementedError
 
 
@@ -219,7 +219,7 @@ class INV(Gate):
         CL = self.n_out.sum_CL()
 
         # step 3, apply csm step simulation
-        r = self.lut.get_val({"Vin": Vin, "Vout": Vout)
+        r = self.lut.get_val({"Vin": Vin, "Vout": Vout})
         
         if not just_update_CI: # if True then skip the diff eq solving, and voltage updating part
             d_Vout = (r["CM"] * d_Vin - r["I_out_DC"] * t_step) / (CL + r["CO"] + r["CM"])
@@ -251,16 +251,16 @@ class INV(Gate):
             self.status = "stabilising"
         else: # all settled, let's sleep
             self.status = "sleep"
-
         # TODO: a bug is, the point input is considered to be settled, the voltage at that point need to be rememberd and
         # compared against. otherwise, if input ramp-up slowly, the gate will never wake up.
 
+
 class NAND2(Gate):
     def __init__(self, name, lut, n_out, n_in1, n_in2, n_int_v=0):
-    '''
-    arguments
-    n_int_V:    initial voltage of internal node
-    '''
+
+        ''' arguments
+        n_int_V:    initial voltage of internal node 
+        '''
         Gate.__init__(self, name, lut, net_out) 
         self.n_in1 = n_in1
         self.n_in2 = n_in2
@@ -347,7 +347,7 @@ class Circuit:
 
     def read_netlist(self):
         # open verilog netlist to read
-        print "reading netlist file..."
+        print "reading netlist file: ", self.verilog_path
         netlist_file = open(self.verilog_path, "r")
         
         self.nets_dict = dict()
@@ -400,9 +400,15 @@ class Circuit:
         out_flag = 0
         wire_flag = 0
         for line in netlist_file:
+            # TODO@Eda: here is the problem
+            print "--> ", in_flag, out_flag, wire_flag, line
+            print re.search('wire', line[:6], re.IGNORECASE)
+            
             # step 1, create all net instances
             if re.search('input', line[:6], re.IGNORECASE) or in_flag == 1:
+                pdb.set_trace()
                 in_flag = 1
+                # TODO@Eda: This line is the issue:
                 line = re.split('\W+', line) # extract all words from line
                 self.input_nodes = line[1:-1] # primary input list
                 for each_net_name in self.input_nodes:
@@ -420,6 +426,7 @@ class Circuit:
             elif re.search('wire', line[:6], re.IGNORECASE) or wire_flag == 1:
                 wire_flag = 1
                 line = re.split('\W+', line) # extract all words from line
+                pdb.set_trace()
                 self.circuit_internal_nodes = line[1:-1]
                 for each_net_name in self.circuit_internal_nodes:
                     self.nets_dict[each_net_name] = net(name=each_net_name, initial_voltage=0)
