@@ -160,173 +160,182 @@ class net:
 
 
 
-class logic_gate: # base (or parent) class for all logic gates
-    # this is the constructor, that is run at the creation of instance
-    def __init__(self, name, LUT_and_boundary, output_net):
+class Gate: # TODO: Saeed add doc for this as an example to Eda 
+    def __init__(self, name, lut, n_out):
+        '''
+        since there could be 1 or more input net depending on logic gate type,
+        construction of input is going to be in logic gate specific class
+        there can be 3 status for event driven purpose.
+        "active":      everything active, working as normal
+        "stabilising": all input nets has stabled, waiting on output net to settle. technically internal net will
+                also need to be checked. however it's not straight forward to implement. hence, not included
+        "sleep":       not active. simulation is simply skipped. output net voltage will naturally not change.
+        '''
         self.name = name
-        # since there could be 1 or more input net depending on logic gate type,
-        # construction of input is going to be in logic gate specific class
-        # self.input_net = input_net
-        self.output_net = output_net # this can convinently be net instance, and can be changed later within object
-        self.LUT_and_boundary = LUT_and_boundary
+        self.n_out = n_out # this can convinently be net instance, and can be changed later within object
+        self.lut = lut
         self.status = "active"
-        # there can be 3 status for event driven purpose.
-        #   "active":      everything active, working as normal
-        #   "stabilising": all input nets has stabled, waiting on output net to settle. technically internal net will
-        #                  also need to be checked. however it's not straight forward to implement. hence, not included
-        #   "sleep":       not active. simulation is simply skipped. output net voltage will naturally not change.
-        self.level = None # reserve a space here
+        self.level = None 
 
-class INV(logic_gate):
-    def __init__(self, name, LUT_and_boundary, output_net, input_net):
-        logic_gate.__init__(self, name, LUT_and_boundary, output_net) # inherite from parent class
-        self.input_net = input_net
+    def simulate(self, t_step, just_update_CI=False):
+        raise NotImplementedError
+
+    def update_level(self):
+        raise NotImplementedError
+   
+    def check_status(self, t_step, settle_th)
+        raise NotImplementedError
+
+
+
+class INV(Gate):
+    def __init__(self, name, lut, n_out, n_in):
+        '''
+        arguments
+        n_in:   input node 
+        n_out:  output node
+        lut:    CSM look up table
+        name:   name/id of this gate in the ckt/netlist
+        '''
+        Gate.__init__(self, name, lut, n_out) 
+        self.n_in = n_in
 
         # added for event driven
-        self.input_net_last_active_voltage = input_net.voltage # its going to be initial voltage anyway.
+        # its going to be initial voltage anyway.
+        self.input_net_last_active_voltage = n_in.voltage 
 
-    # instance function, unique to INV, NAND2, NOR2, since differenct differential equation
-    def simulate(self, t_step = None, just_update_CI = False): # it is going to simulate for 1 single time step
-        # standing at time "now", given Vin_next, find Vout_next
-
+    def simulate(self, t_step = None, just_update_CI = False): 
+        ''' csm simulation of gate for 1 time step
+        standing at time "now", given Vin_next, find Vout_next
+        '''
         # step 1, get next value from input net object.
-        Vin_next = self.input_net.voltage   # since Vin net has already been updated by last simulation of previous gate
-        Vin = self.input_net.voltage_just_now # intput net voltage now is actually Vin_next for this gate.
+        Vin_next = self.n_in.voltage   # since Vin net has already been updated by last simulation of previous gate
+        Vin = self.n_in.voltage_just_now # intput net voltage now is actually Vin_next for this gate.
         d_Vin = Vin_next - Vin
 
         # step 2 get output node information
-        Vout = self.output_net.voltage
-        # output external load of this gate, which is all input cap of gates on output net
-        CL = self.output_net.sum_CL()
+        # output external load of this gate, i.e. input cap of output gates
+        Vout = self.n_out.voltage
+        CL = self.n_out.sum_CL()
 
         # step 3, apply csm step simulation
-        # interpolation
-        r = read_LUT(LUT_and_boundary=self.LUT_and_boundary,
-                     GATE_NAME="INV",
-                     voltages_now={"Vin": Vin, "Vout": Vout})
-
-        if just_update_CI == False: # if True then skip the diff eq solving, and voltage updating part
-            # the actual diffrential equation for circuit simulation, plus minus sign checked.
-            # diff eq for INV
+        r = self.lut.get_val({"Vin": Vin, "Vout": Vout)
+        
+        if not just_update_CI: # if True then skip the diff eq solving, and voltage updating part
             d_Vout = (r["CM"] * d_Vin - r["I_out_DC"] * t_step) / (CL + r["CO"] + r["CM"])
 
             # step 4, update output net object voltage value
-            Vout_next = Vout + d_Vout  # record and accumulate
-            self.output_net.update_voltage(Vout_next) # update output net voltage value
+            self.n_out.update_voltage(Vout + d_Vout) 
 
-        # also remember to update input net for cap value change.
-        self.input_net.cap_load_dict[self.name] = r["CI"]
+        # update input net for cap value change.
+        self.n_in.cap_load_dict[self.name] = r["CI"]
+
 
     def update_level(self): # returns a boolean, if output net level is updated.
-        new_level = self.input_net.level + 1
-        if self.output_net.level != new_level:
+        new_level = self.n_in.level + 1
+        if self.n_out.level != new_level:
             gate_level_updated = True
         else:
             gate_level_updated = False
-        self.output_net.level = new_level
+        self.n_out.level = new_level
         return gate_level_updated
 
-    def check_status(self, t_step, settle_threshold): # check and set the status of this gate.
-        d_Vin_slope = abs((self.input_net.voltage - self.input_net_last_active_voltage)/t_step)
-        d_Vout_slope = abs((self.output_net.voltage - self.output_net.voltage_just_now)/t_step)
+    def check_status(self, t_step, settle_th): # check and set the status of this gate.
+        d_Vin_slope = abs((self.n_in.voltage - self.input_net_last_active_voltage)/t_step)
+        d_Vout_slope = abs((self.n_out.voltage - self.n_out.voltage_just_now)/t_step)
 
-        if (d_Vin_slope > settle_threshold): # input not settled
+        if (d_Vin_slope > settle_th): # input not settled
             self.status = "active"
             self.input_net_last_active_voltage = self.input_net.voltage # update last active voltage
-        elif (d_Vout_slope > settle_threshold): # input settled, but waiting on output to settle
+        elif (d_Vout_slope > settle_th): # input settled, but waiting on output to settle
             self.status = "stabilising"
         else: # all settled, let's sleep
             self.status = "sleep"
 
-        # a bug is, the point input is considered to be settled, the voltage at that point need to be rememberd and
+        # TODO: a bug is, the point input is considered to be settled, the voltage at that point need to be rememberd and
         # compared against. otherwise, if input ramp-up slowly, the gate will never wake up.
 
-class NAND2(logic_gate):
-    def __init__(self, name, LUT_and_boundary, output_net, input_net_A, input_net_B, internal_node_initial_V=0):
-        logic_gate.__init__(self, name, LUT_and_boundary, output_net) # inherite from parent class
-        self.input_net_A = input_net_A
-        self.input_net_B = input_net_B
+class NAND2(Gate):
+    def __init__(self, name, lut, n_out, n_in1, n_in2, n_int_v=0):
+    '''
+    arguments
+    n_int_V:    initial voltage of internal node
+    '''
+        Gate.__init__(self, name, lut, net_out) 
+        self.n_in1 = n_in1
+        self.n_in2 = n_in2
+        self.n_int_v = n_int_v # 
 
-        # added for event driven
-        self.input_net_A_last_active_voltage = input_net_A.voltage # its going to be initial voltage anyway.
-        self.input_net_B_last_active_voltage = input_net_B.voltage
+        # for event driven
+        self.n_in1_last_active_voltage = n_in1.voltage # its going to be initial voltage anyway.
+        self.n_in2_last_active_voltage = n_in2.voltage
 
-        # special to NAND2 NOR2, it has internal node. This node is currently not visible to top level circuit
-        # however, we do need to store it's voltage for simulation
-        self.internal_node_voltage = internal_node_initial_V # set initial to 0 by default.
 
-    # instance function, unique to INV, NAND2, NOR2, since differenct differential equation
-    def simulate(self, t_step = None, just_update_CI = False): # it is going to simulate for 1 single time step
-        # standing at time "now", given Vin_next, find Vout_next
+    def simulate(self, t_step, just_update_CI = False):
 
         # step 1, get next value from input net object.
-        Vna_next = self.input_net_A.voltage   # since Vin net has already been updated by last simulation of previous gate
-        Vna = self.input_net_A.voltage_just_now # intput net voltage now is actually Vin_next for this gate.
+        Vna_next = self.n_in1.voltage   # since Vin net has already been updated by last simulation of previous gate
+        Vna = self.n_in1.voltage_just_now # intput net voltage now is actually Vin_next for this gate.
         d_Vna = Vna_next - Vna
-        Vnb_next = self.input_net_B.voltage   # since Vin net has already been updated by last simulation of previous gate
-        Vnb = self.input_net_B.voltage_just_now # intput net voltage now is actually Vin_next for this gate.
+        Vnb_next = self.n_in2.voltage   # since Vin net has already been updated by last simulation of previous gate
+        Vnb = self.n_in2.voltage_just_now # intput net voltage now is actually Vin_next for this gate.
         d_Vnb = Vnb_next - Vnb
 
         # step 2 get output node information
-        Vout = self.output_net.voltage
-        # output external load of this gate, which is all input cap of gates on output net
-        CL = self.output_net.sum_CL()
+        Vout = self.n_out.voltage
+        CL = self.n_out.sum_CL()
 
         # get internal node voltage also
-        Vn1 = self.internal_node_voltage
+        Vn1 = self.n_int_v
 
         # step 3, apply csm step simulation
-        # interpolation LUT to retrive value
-        r = read_LUT(LUT_and_boundary=self.LUT_and_boundary,
-                     GATE_NAME="NAND2",
-                     voltages_now={"Vna": Vna, "Vnb": Vnb, "Vn1": Vn1, "Vout": Vout})
+        r = self.lut.get_val({"Vna": Vna, "Vnb": Vnb, "Vn1": Vn1, "Vout": Vout})
 
-        if just_update_CI == False:  # if True then skip the diff eq solving, and voltage updating part
+        if not just_update_CI:  
+            # if True then skip the diff eq solving, and voltage updating part
             # the actual diffrential equation for circuit simulation, plus minus sign checked.
-            # 1
             d_Vout = (r["CM_A"] * d_Vna + r["CM_B"] * d_Vnb - r["I_out_DC"] * t_step) / (
                     CL + r["CO"] + r["CM_A"] + r["CM_B"])
-            # 2
+
             d_Vn1 = ((-r["I_inter_DC"]) * t_step) / r["CINT"]
 
             # step 4, update output-net-object voltage value
-            Vout_next = Vout + d_Vout  # record and accumulate
-            Vn1_next = Vn1 + d_Vn1
-
-            self.output_net.update_voltage(Vout_next) # update output net voltage value
-            self.internal_node_voltage = Vn1_next
+            self.n_out.update_voltage(Vout + d_Vout) # update output net voltage value
+            self.n_int_v = Vn1 + d_Vn1
 
         # also remember to update input net for cap value change.
-        self.input_net_A.cap_load_dict[self.name] = r["CI_A"]
-        self.input_net_B.cap_load_dict[self.name] = r["CI_B"]
+        self.n_in1.cap_load_dict[self.name] = r["CI_A"]
+        self.n_in2.cap_load_dict[self.name] = r["CI_B"]
+
 
     def update_level(self): # returns a boolean, if output net level is updated.
-        new_level = max(self.input_net_A.level, self.input_net_B.level) + 1 # take max of input A and B, then + 1
-        if self.output_net.level != new_level:
+        new_level = max(self.n_in1.level, self.n_in2.level) + 1 # take max of input A and B, then + 1
+        if self.n_out.level != new_level:
             gate_level_updated = True
         else:
             gate_level_updated = False
-        self.output_net.level = new_level
+        self.n_out.level = new_level
         return gate_level_updated
 
-    # only difference to INV is, it now checks 2 input nodes
-    def check_status(self, t_step, settle_threshold): # check and set the status of this gate.
-        d_Vna_slope = abs((self.input_net_A.voltage - self.input_net_A_last_active_voltage)/t_step)
-        d_Vnb_slope = abs((self.input_net_B.voltage - self.input_net_B_last_active_voltage)/t_step)
-        d_Vout_slope = abs((self.output_net.voltage - self.output_net.voltage_just_now)/t_step)
 
-        if (d_Vna_slope > settle_threshold) or (d_Vnb_slope > settle_threshold): # input not settled
+    # only difference to INV is, it now checks 2 input nodes
+    def check_status(self, t_step, settle_th): # check and set the status of this gate.
+        d_Vna_slope = abs((self.n_in1.voltage - self.n_in1_last_active_voltage)/t_step)
+        d_Vnb_slope = abs((self.n_in2.voltage - self.n_in2_last_active_voltage)/t_step)
+        d_Vout_slope = abs((self.n_out.voltage - self.n_out.voltage_just_now)/t_step)
+
+        if (d_Vna_slope > settle_th) or (d_Vnb_slope > settle_th): # input not settled
             self.status = "active"
-            self.input_net_A_last_active_voltage = self.input_net_A.voltage  # update last active voltage
-            self.input_net_B_last_active_voltage = self.input_net_B.voltage
-        elif (d_Vout_slope > settle_threshold): # input settled, but waiting on output to settle
+            self.n_in1_last_active_voltage = self.n_in1.voltage  # update last active voltage
+            self.n_in2_last_active_voltage = self.n_in2.voltage
+        elif (d_Vout_slope > settle_th): # input settled, but waiting on output to settle
             self.status = "stabilising"
         else: # all settled, let's sleep
             self.status = "sleep"
 
 class NOR2(NAND2):
     # they have no difference in this simulation procedure
-    # when creating gate instances, different LUT_and_boundary will be given to them, hence defineing their charactrstic
+    # when creating gate instances, different lut will be given to them, hence defineing their charactrstic
     pass
 
 
@@ -427,7 +436,7 @@ class Circuit:
                 output_net_name  = line[1]
                 input_net_name = line[2]
                 # note: output net and input net instance are passed in as argument here
-                self.gates_dict[gate_name] = INV(name=gate_name, LUT_and_boundary=_INV_LUT,
+                self.gates_dict[gate_name] = INV(name=gate_name, lut=_INV_LUT,
                                               output_net=self.nets_dict[output_net_name],
                                               input_net=self.nets_dict[input_net_name])
 
@@ -441,10 +450,10 @@ class Circuit:
                 input_A_net_name = line[2]
                 input_B_net_name = line[3]
                 # note: output net and input net instance are passed in as argument here
-                self.gates_dict[gate_name] = NAND2(name=gate_name, LUT_and_boundary=_NAND2_LUT,
+                self.gates_dict[gate_name] = NAND2(name=gate_name, lut=_NAND2_LUT,
                                               output_net=self.nets_dict[output_net_name],
-                                              input_net_A=self.nets_dict[input_A_net_name] ,
-                                              input_net_B=self.nets_dict[input_B_net_name])
+                                              n_in1=self.nets_dict[input_A_net_name] ,
+                                              n_in2=self.nets_dict[input_B_net_name])
 
             elif "nor" in line:
                 line = re.split('\W+', line) # extract all words from line
@@ -456,10 +465,10 @@ class Circuit:
                 input_A_net_name = line[2]
                 input_B_net_name = line[3]
                 # note: output net and input net instance are passed in as argument here
-                self.gates_dict[gate_name] = NOR2(name=gate_name, LUT_and_boundary=_NOR2_LUT,
+                self.gates_dict[gate_name] = NOR2(name=gate_name, lut=_NOR2_LUT,
                                               output_net=self.nets_dict[output_net_name],
-                                              input_net_A=self.nets_dict[input_A_net_name] ,
-                                              input_net_B=self.nets_dict[input_B_net_name])
+                                              n_in1=self.nets_dict[input_A_net_name] ,
+                                              n_in2=self.nets_dict[input_B_net_name])
 
 
     def attach_LUTs(self): 
@@ -543,7 +552,7 @@ class Circuit:
         t_step = self.config.T_STEP
 
         print "finding initial conditions..."
-        initial_voltage_settle_threshold = self.config.initial_voltage_settle_threshold
+        initial_voltage_settle_th = self.config.initial_voltage_settle_th
         all_nets_settled = False
         while (all_nets_settled == False):
             #print "finding initial conditions..."
@@ -562,13 +571,10 @@ class Circuit:
             for each_net in (self.circuit_internal_nodes + self.output_nodes):
                 dV_of_this_net = self.nets_dict[each_net].voltage - self.nets_dict[each_net].voltage_just_now
                 slope = abs(dV_of_this_net/t_step)
-                #print slope
-                #print "th: " + str(initial_voltage_settle_threshold)
-                if (slope > initial_voltage_settle_threshold):
+                if (slope > initial_voltage_settle_th):
                     all_nets_settled = False
             #print all_nets_settled
 
-        # print initial conditions
         print "initial conditions:"
         for each_net in (self.circuit_internal_nodes + self.output_nodes):
             print "{}: {:.4f}".format(each_net, self.nets_dict[each_net].voltage) 
