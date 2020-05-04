@@ -9,23 +9,28 @@ import itertools
 def _trick_char_gate(temp, path):
 
     data = dict()
-    data["low"] = [0] * 4# dict()
-    data["high"] = [0] * 4 # dict()
-    data["step"] = [0] * 4 # dict()
     data["dim_idx"] = dict()
-    data["idx_dim"] = [0] * 4
     data["lut"] = temp["LUT"]
 
     if "_INV_" in path:
         dim_name = ["Vin", "Vout"]
-    elif "_NAND2_" or "_NOR2_" in path:
+        data["low"] = [0] * 2
+        data["high"] = [0] * 2
+        data["step"] = [0] * 2
+        data["idx_dim"] = [0] * 2
+    elif ("_NAND2_" in path) or ("_NOR2_" in path):
         dim_name = ["Vna", "Vnb", "Vn1", "Vout"]
+        data["low"] = [0] * 4
+        data["high"] = [0] * 4
+        data["step"] = [0] * 4
+        data["idx_dim"] = [0] * 4
     for i, name in enumerate(dim_name):
         data["low"][i] = temp["V_L"]
         data["high"][i] = temp["V_H"]
         data["step"][i] = temp["VSTEP"]
         data["dim_idx"][name] = i
         data["idx_dim"][i] = name
+        print(data["low"])
 
     return data
 
@@ -74,7 +79,6 @@ class LUT:
     
 
     def get_val(self, val, params=None):
-        # TODO: what should be data type of val?
         """ returns the value of list of params at values val
         based on interpolation on LUTs
         curretnly only supprts interpolation, not extrapolation
@@ -105,7 +109,9 @@ class LUT:
             dd = self.lut[param]
             mat_expand = np.array([dd[x] for x in list(itertools.product(*indices))])
             res[param] = np.sum(slope_coef* mat_expand)
-            print param, res[param]
+            # print param,"\t", res[param]
+
+        return(res)
 
     def get_hypercube(self, val):
         idx_low = [0] * self.dim
@@ -204,7 +210,7 @@ class INV(Gate):
         # its going to be initial voltage anyway.
         self.input_net_last_active_voltage = n_in.voltage 
 
-    def simulate(self, t_step = None, just_update_CI = False): 
+    def simulate(self, t_step, just_update_CI = False): 
         ''' csm simulation of gate for 1 time step
         standing at time "now", given Vin_next, find Vout_next
         '''
@@ -219,7 +225,7 @@ class INV(Gate):
         CL = self.n_out.sum_CL()
 
         # step 3, apply csm step simulation
-        r = self.lut.get_val({"Vin": Vin, "Vout": Vout})
+        r = self.lut.get_val([Vin, Vout])
         
         if not just_update_CI: # if True then skip the diff eq solving, and voltage updating part
             d_Vout = (r["CM"] * d_Vin - r["I_out_DC"] * t_step) / (CL + r["CO"] + r["CM"])
@@ -261,7 +267,7 @@ class NAND2(Gate):
         ''' arguments
         n_int_V:    initial voltage of internal node 
         '''
-        Gate.__init__(self, name, lut, net_out) 
+        Gate.__init__(self, name, lut, n_out) 
         self.n_in1 = n_in1
         self.n_in2 = n_in2
         self.n_int_v = n_int_v # 
@@ -289,7 +295,12 @@ class NAND2(Gate):
         Vn1 = self.n_int_v
 
         # step 3, apply csm step simulation
-        r = self.lut.get_val({"Vna": Vna, "Vnb": Vnb, "Vn1": Vn1, "Vout": Vout})
+        r = self.lut.get_val([Vna, Vnb, Vn1, Vout])
+
+        if just_update_CI:
+            d_Vout = -1
+            d_Vn1 = -1
+            print "Vna,\tVna_next,\tVnb,\tVnb_next,\tVn1,\td_Vn1,\tVout,\td_Vout"
 
         if not just_update_CI:  
             # if True then skip the diff eq solving, and voltage updating part
@@ -306,7 +317,9 @@ class NAND2(Gate):
         # also remember to update input net for cap value change.
         self.n_in1.cap_load_dict[self.name] = r["CI_A"]
         self.n_in2.cap_load_dict[self.name] = r["CI_B"]
-
+        if self.name == "NAND2_5":
+            print "{:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f}".format(Vna, Vna_next, Vnb, Vnb_next, Vn1, d_Vn1, Vout, d_Vout)
+            # pdb.set_trace()
 
     def update_level(self): # returns a boolean, if output net level is updated.
         new_level = max(self.n_in1.level, self.n_in2.level) + 1 # take max of input A and B, then + 1
@@ -400,83 +413,84 @@ class Circuit:
         out_flag = 0
         wire_flag = 0
         for line in netlist_file:
-            # TODO@Eda: here is the problem
-            print "--> ", in_flag, out_flag, wire_flag, line
-            print re.search('wire', line[:6], re.IGNORECASE)
-            
             # step 1, create all net instances
             if re.search('input', line[:6], re.IGNORECASE) or in_flag == 1:
-                pdb.set_trace()
                 in_flag = 1
-                # TODO@Eda: This line is the issue:
-                line = re.split('\W+', line) # extract all words from line
-                self.input_nodes = line[1:-1] # primary input list
-                for each_net_name in self.input_nodes:
-                    self.nets_dict[each_net_name] = net(name=each_net_name, initial_voltage=0)
                 if ';' in line:
                     in_flag = 0
+                line = re.split('\W+', line) # extract all words from line
+                if line[0] == 'input':
+                    self.in_nodes = line[1:-1] # primary input list for first line
+                else:
+                    self.in_nodes = self.in_nodes + line # primary input list for other lines
             elif re.search('output', line[:6], re.IGNORECASE) or out_flag == 1:
                 out_flag = 1
-                line = re.split('\W+', line) # extract all words from line
-                self.output_nodes = line[1:-1]
-                for each_net_name in self.output_nodes:
-                    self.nets_dict[each_net_name] = net(name=each_net_name, initial_voltage=0)
                 if ';' in line:
                     out_flag = 0
+                line = re.split('\W+', line) # extract all words from line
+                if line[0] == 'output':
+                    self.out_nodes = line[1:-1]
+                else:
+                    self.out_nodes = self.out_nodes + line
             elif re.search('wire', line[:6], re.IGNORECASE) or wire_flag == 1:
                 wire_flag = 1
-                line = re.split('\W+', line) # extract all words from line
-                pdb.set_trace()
-                self.circuit_internal_nodes = line[1:-1]
-                for each_net_name in self.circuit_internal_nodes:
-                    self.nets_dict[each_net_name] = net(name=each_net_name, initial_voltage=0)
                 if ';' in line:
                     wire_flag = 0
+                line = re.split('\W+', line) # extract all words from line
+                if line[0] == 'wire':
+                    self.int_nodes = line[1:-1]
+                else:
+                    self.int_nodes = self.int_nodes + line
 
+        for each_net_name in self.in_nodes:
+            self.nets_dict[each_net_name] = net(name=each_net_name, initial_voltage=0)
+        for each_net_name in self.out_nodes:
+            self.nets_dict[each_net_name] = net(name=each_net_name, initial_voltage=0)
+        for each_net_name in self.int_nodes:
+            self.nets_dict[each_net_name] = net(name=each_net_name, initial_voltage=0)
+
+        netlist_file.seek(0) #reread file for gate instances
+        for line in netlist_file:
             # step 2, create all logic gates instances, pass net instance to gates, according to netlist
-            elif "inv" in line:
+            if "inv" in line:
                 line = re.split('\W+', line) # extract all words from line
                 line = line[1:-1]
-                #print line
                 # 0 name, 1 output, 2 in_A, 3 in_B
-                gate_name        = line[0]
-                output_net_name  = line[1]
-                input_net_name = line[2]
+                gate_name = line[0]
+                n_out_name = line[1]
+                n_in_name = line[2]
                 # note: output net and input net instance are passed in as argument here
                 self.gates_dict[gate_name] = INV(name=gate_name, lut=_INV_LUT,
-                                              output_net=self.nets_dict[output_net_name],
-                                              input_net=self.nets_dict[input_net_name])
+                                              n_out=self.nets_dict[n_out_name],
+                                              n_in=self.nets_dict[n_in_name])
 
             elif "nand" in line:
                 line = re.split('\W+', line) # extract all words from line
                 line = line[1:-1]
-                #print line
                 # 0 name, 1 output, 2 in_A, 3 in_B
-                gate_name        = line[0]
-                output_net_name  = line[1]
-                input_A_net_name = line[2]
-                input_B_net_name = line[3]
+                gate_name = line[0]
+                n_out_name = line[1]
+                n_in1_name = line[2]
+                n_in2_name = line[3]
                 # note: output net and input net instance are passed in as argument here
                 self.gates_dict[gate_name] = NAND2(name=gate_name, lut=_NAND2_LUT,
-                                              output_net=self.nets_dict[output_net_name],
-                                              n_in1=self.nets_dict[input_A_net_name] ,
-                                              n_in2=self.nets_dict[input_B_net_name])
+                                              n_out=self.nets_dict[n_out_name],
+                                              n_in1=self.nets_dict[n_in1_name] ,
+                                              n_in2=self.nets_dict[n_in2_name])
 
             elif "nor" in line:
                 line = re.split('\W+', line) # extract all words from line
                 line = line[1:-1]
-                #print line
                 # 0 name, 1 output, 2 in_A, 3 in_B
-                gate_name        = line[0]
-                output_net_name  = line[1]
-                input_A_net_name = line[2]
-                input_B_net_name = line[3]
+                gate_name  = line[0]
+                n_out_name = line[1]
+                n_in1_name = line[2]
+                n_in2_name = line[3]
                 # note: output net and input net instance are passed in as argument here
                 self.gates_dict[gate_name] = NOR2(name=gate_name, lut=_NOR2_LUT,
-                                              output_net=self.nets_dict[output_net_name],
-                                              n_in1=self.nets_dict[input_A_net_name] ,
-                                              n_in2=self.nets_dict[input_B_net_name])
-
+                                              n_out=self.nets_dict[n_out_name],
+                                              n_in1=self.nets_dict[n_in1_name] ,
+                                              n_in2=self.nets_dict[n_in2_name])
 
     def attach_LUTs(self): 
         pass
@@ -485,11 +499,11 @@ class Circuit:
     def levelize(self):
         # TODO: @Hao just check if its working good here later
 
-        for each_net in self.input_nodes: # primary input list
+        for each_net in self.in_nodes: # primary input list
             self.nets_dict[each_net].level = 0 # set to 0
-        # TODO URGENT: @Hao, what is this circuit_internal_nodes
+        # TODO URGENT: @Hao, what is this int_nodes
         # TODO: Saeed 2 @Hao: I guess just the internal nodes level init is enough?
-        for each_net in (self.circuit_internal_nodes + self.output_nodes): # all other nodes
+        for each_net in (self.int_nodes + self.out_nodes): # all other nodes
             self.nets_dict[each_net].level = 1 # initialize to 1
     
         while True:
@@ -510,17 +524,17 @@ class Circuit:
         # I choose to do this in th end hope to reduce comparison brough by max level recording in previous iterations.
         circuit_max_level = 1 # should at least be 1
         for each_gate in self.gates_dict.keys():
-            this_gate_output_net_level = self.gates_dict[each_gate].output_net.level
+            n_out_lvl = self.gates_dict[each_gate].n_out.level
             # I choose to define a gate's level as its output net's level
-            self.gates_dict[each_gate].level = this_gate_output_net_level
-            if this_gate_output_net_level > circuit_max_level:
-                circuit_max_level = this_gate_output_net_level # record max level
+            self.gates_dict[each_gate].level = n_out_lvl
+            if n_out_lvl > circuit_max_level:
+                circuit_max_level = n_out_lvl # record max level
 
         # iterate though all gate again to put their name to corresponding level list
         #create an empty list with max_level+1 slots, so we can put PI in this list as well
         level_list = [[] for i in range(circuit_max_level+1)]
 
-        level_list[0] = self.input_nodes # put PI in level 0
+        level_list[0] = self.in_nodes # put PI in level 0
         for each_gate in self.gates_dict.keys():
             this_gate_level = self.gates_dict[each_gate].level
             level_list[this_gate_level].append(self.gates_dict[each_gate].name) 
@@ -535,19 +549,19 @@ class Circuit:
         # below is GOLD, pre-simulate Cin loaing iteration
         # run all gates at 0 time just to get cap_load value on nets populated.
         for each_gate in self.gates_dict.keys():
-            self.gates_dict[each_gate].simulate(just_update_CI=True)
+            self.gates_dict[each_gate].simulate(t_step = None, just_update_CI=True)
             
         # LOAD CAP of PRIMARY OUTPUTs 
         if (self.config.load_all_PO == True):
             final_output_load = dict()
-            for each_net in self.output_nodes:
+            for each_net in self.out_nodes:
                 final_output_load[each_net] = self.config.cap_value
         else:
             final_output_load = self.config.final_output_load
     
         # TODO: does not seem to work. ...
         # ... add cap load to all output nets, this fix the problem for CSM simulator not stable
-        for each_net in self.output_nodes:
+        for each_net in self.out_nodes:
             #nets_dict[each_net].extra_cap_load = 1e-16
             self.nets_dict[each_net].extra_cap_load = final_output_load[each_net]
 
@@ -560,9 +574,9 @@ class Circuit:
 
         print "finding initial conditions..."
         initial_voltage_settle_th = self.config.initial_voltage_settle_th
+        print(initial_voltage_settle_th, t_step)
         all_nets_settled = False
         while (all_nets_settled == False):
-            #print "finding initial conditions..."
             all_nets_settled = True
             for level in range(len(self.level_list)):  # simulate circuit level by level 
                 if level == 0:  # Primary inputs
@@ -575,15 +589,17 @@ class Circuit:
 
             # TODO: this may not be the best orgnization todo this, check later
             # after simulation, check if all nets besides PI have settled
-            for each_net in (self.circuit_internal_nodes + self.output_nodes):
+            for each_net in (self.int_nodes + self.out_nodes):
                 dV_of_this_net = self.nets_dict[each_net].voltage - self.nets_dict[each_net].voltage_just_now
                 slope = abs(dV_of_this_net/t_step)
+                # if each_net == 'N10':
+                #     print(each_net, slope, self.nets_dict[each_net].voltage)
                 if (slope > initial_voltage_settle_th):
                     all_nets_settled = False
             #print all_nets_settled
 
         print "initial conditions:"
-        for each_net in (self.circuit_internal_nodes + self.output_nodes):
+        for each_net in (self.int_nodes + self.out_nodes):
             print "{}: {:.4f}".format(each_net, self.nets_dict[each_net].voltage) 
             # each_net +": " + str(self.nets_dict[each_net].voltage)
 
@@ -591,7 +607,7 @@ class Circuit:
     def simulate_step(self, t):
         t_step = self.config.T_STEP
         signal = self.config.PI_signal_dict
-        init_vth = self.config.initial_voltage_settle_threshold
+        init_vth = self.config.initial_voltage_settle_th
 
         # TODO: why not iterate over levels themselves? 
         for level in range(len(self.level_list)): # simulate ckt level by level
@@ -623,12 +639,11 @@ class Circuit:
                     # gates_dict[each_gate].simulate(t_step)
 
 
-
     def simulate_signal(self):
         t_tot = self.config.T_TOT
         t_step = self.config.T_STEP
         signal = self.config.PI_signal_dict
-        init_vth = self.config.initial_voltage_settle_threshold
+        init_vth = self.config.initial_voltage_settle_th
 
         save_file = open(self.config.save_file_dir, "w")
         save_file.write("# time")
@@ -653,10 +668,5 @@ class Circuit:
 
     def info(self):
         print self.ckt_name
-
-
-
-
-
 
 
