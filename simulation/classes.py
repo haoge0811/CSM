@@ -36,7 +36,6 @@ def _trick_char_gate(temp, path):
         data["step"][i] = temp["VSTEP"]
         data["dim_idx"][name] = i
         data["idx_dim"][i] = name
-        print(data["low"])
 
     return data
 
@@ -84,11 +83,7 @@ class LUT:
         print "\tLUT loaded with keys: " + str(self.lut.keys())
     
 
-<<<<<<< Updated upstream
-    def get_val(self, val, params=None):
-=======
     def get_val(self, val, params=None, debug=False):
->>>>>>> Stashed changes
         """ returns the value of list of params at values val
         based on interpolation on LUTs
         curretnly only supprts interpolation, not extrapolation
@@ -143,16 +138,12 @@ class LUT:
             dd = self.lut[param]
             mat_expand = np.array([dd[x] for x in list(itertools.product(*indices))])
             res[param] = np.sum(slope_coef* mat_expand)
-<<<<<<< Updated upstream
-            # print param,"\t", res[param]
-=======
         
         if debug:
             print "\n", slope, "\n"
             print "\n", slope_expand
             print "\n", slope_coef
             pdb.set_trace()
->>>>>>> Stashed changes
 
         return(res)
 
@@ -274,11 +265,7 @@ class INV(Gate):
 
         # step 3, apply csm step simulation
         r = self.lut.get_val([Vin, Vout])
-<<<<<<< Updated upstream
-        
-=======
  
->>>>>>> Stashed changes
         if not just_update_CI: # if True then skip the diff eq solving, and voltage updating part
             d_Vout = (r["CM"] * d_Vin - r["I_out_DC"] * t_step) / (CL + r["CO"] + r["CM"])
 
@@ -360,14 +347,6 @@ class NAND2(Gate):
 
         # step 3, apply csm step simulation
         r = self.lut.get_val([Vna, Vnb, Vn1, Vout])
-<<<<<<< Updated upstream
-
-        if just_update_CI:
-            d_Vout = -1
-            d_Vn1 = -1
-            print "Vna,\tVna_next,\tVnb,\tVnb_next,\tVn1,\td_Vn1,\tVout,\td_Vout"
-=======
->>>>>>> Stashed changes
 
         if not just_update_CI:  
             # if True then skip the diff eq solving, and voltage updating part
@@ -384,13 +363,8 @@ class NAND2(Gate):
         # also remember to update input net for cap value change.
         self.n_in1.cap_load_dict[self.name] = r["CI_A"]
         self.n_in2.cap_load_dict[self.name] = r["CI_B"]
-<<<<<<< Updated upstream
-        if self.name == "NAND2_5":
-            print "{:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f}".format(Vna, Vna_next, Vnb, Vnb_next, Vn1, d_Vn1, Vout, d_Vout)
-=======
         # if self.name == "NAND2_5":
             # print "{:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f}".format(Vna, Vna_next, Vnb, Vnb_next, Vn1, d_Vn1, Vout, d_Vout)
->>>>>>> Stashed changes
             # pdb.set_trace()
 
     def update_level(self): # returns a boolean, if output net level is updated.
@@ -512,23 +486,6 @@ class Circuit:
                     self.int_nodes = line[1:-1]
                 else:
                     self.int_nodes = self.int_nodes + line
-<<<<<<< Updated upstream
-
-        for each_net_name in self.in_nodes:
-            self.nets_dict[each_net_name] = net(name=each_net_name, initial_voltage=0)
-        for each_net_name in self.out_nodes:
-            self.nets_dict[each_net_name] = net(name=each_net_name, initial_voltage=0)
-        for each_net_name in self.int_nodes:
-            self.nets_dict[each_net_name] = net(name=each_net_name, initial_voltage=0)
-
-        netlist_file.seek(0) #reread file for gate instances
-        for line in netlist_file:
-            # step 2, create all logic gates instances, pass net instance to gates, according to netlist
-            if "inv" in line:
-                line = re.split('\W+', line) # extract all words from line
-                line = line[1:-1]
-                # 0 name, 1 output, 2 in_A, 3 in_B
-=======
 
         for each_net_name in self.in_nodes:
             self.nets_dict[each_net_name] = net(name=each_net_name, initial_voltage=0)
@@ -545,7 +502,6 @@ class Circuit:
                 line = re.split('\W+', line) # extract all words from line
                 line = line[1:-1]
                 # 0 name, 1 output, 2 input
->>>>>>> Stashed changes
                 gate_name = line[0]
                 n_out_name = line[1]
                 n_in_name = line[2]
@@ -664,11 +620,7 @@ class Circuit:
 
         print "finding initial conditions..."
         initial_voltage_settle_th = self.config.initial_voltage_settle_th
-<<<<<<< Updated upstream
-        print(initial_voltage_settle_th, t_step)
-=======
         # print(initial_voltage_settle_th, t_step)
->>>>>>> Stashed changes
         all_nets_settled = False
         while (all_nets_settled == False):
             all_nets_settled = True
@@ -687,8 +639,6 @@ class Circuit:
                 dV_of_this_net = self.nets_dict[each_net].voltage - self.nets_dict[each_net].voltage_just_now
                 # slope = dV_of_this_net/t_step
                 slope = abs(dV_of_this_net/t_step)
-                # if each_net == 'N10':
-                #     print(each_net, slope, self.nets_dict[each_net].voltage)
                 if (slope > initial_voltage_settle_th):
                     all_nets_settled = False
             #print all_nets_settled
@@ -703,11 +653,7 @@ class Circuit:
         t_step = self.config.T_STEP
         signal = self.config.PI_signal_dict
         init_vth = self.config.initial_voltage_settle_th
-<<<<<<< Updated upstream
-
-=======
         # print "t = ", t
->>>>>>> Stashed changes
         # TODO: why not iterate over levels themselves? 
         for level in range(len(self.level_list)): # simulate ckt level by level
             
@@ -742,10 +688,6 @@ class Circuit:
         t_tot = self.config.T_TOT
         t_step = self.config.T_STEP
         signal = self.config.PI_signal_dict
-<<<<<<< Updated upstream
-        init_vth = self.config.initial_voltage_settle_th
-=======
->>>>>>> Stashed changes
 
         save_file = open(self.config.save_file_dir, "w")
         save_file.write("# time")
