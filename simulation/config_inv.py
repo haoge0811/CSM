@@ -8,7 +8,7 @@ from func_csm import Signal
 SP_DATA_DIR = './output_spice/'
 CSM_DATA_DIR = './output_csm/'
 VERILOG_DIR = "../data/ISCAS_85_verilog/"
-CKT = "c17"
+CKT = "inv"
 # if LUT not exist, create it using characterzation process
 LUT_bin_dir = "/home/home2/visiting/mitsushij/data/CSM_data/LUT_bin/"
 # LUT selection. the following parameter determins which CSM model (LUT) will be loaded for simulation.
@@ -26,11 +26,7 @@ T_STEP = 0.01e-12
 
 # primary inputs
 PI_signal_dict = {
-    "N1":Signal(mode = "constant", constant=0.7),
-    "N2":Signal(mode = "constant", constant=0.0),
-    "N3":Signal(mode = "constant", constant=0.7),
-    "N6":Signal(mode = "constant", constant=0.0),
-    "N7":Signal(mode="ramp_lh", param={"vdd": 0.7, "t_0": 5e-12, "t_lh": 50e-12})}
+    "N1":Signal(mode="ramp_lh", param={"vdd": 0.7, "t_0": 10e-12, "t_lh": 50e-12})}
 
 
 # capacitive loading of primary output
@@ -44,7 +40,7 @@ cap_value = 1e-16
 
 # saving options
 save_file_dir = "./output_csm/voltage_save.csv"
-voltage_nodes_to_save = ["N22", "N23"]
+voltage_nodes_to_save = ["N2"]
 
 SPICE_OUT_DIR="./output_spice/"
-initial_voltage_settle_th = 0.00001/0.01e-12 
+initial_voltage_settle_th = 0.0000000000000001/0.01e-12 
