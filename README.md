@@ -135,7 +135,7 @@ Output loads and input signals set for simulation from config file and generate 
 The SpiceSim also calls verilog2spice function, which is converting verilog format netlist into spice format netlist, 
 and return the final outputs of the circuit to make it convenient to add capacitances on them.
     
-The config.py file for SpiceSim is same with that for CSM simulation
+The config file for SpiceSim is same with that for CSM simulation
 The output of Hspice simulation is saved in output folder with .out suffix.
 
 ### Esim (similarity calculation tool)
@@ -157,8 +157,30 @@ each output nodes between spice and CSM.
 There is another function called Esim_calculate_without_config(self, wv_1, wv_2, vdd). It can calculate
 Esim without config file, given two waveform file and vdd.
     
-The config.py file for Esim is same with that for CSM and spice simulation
+The config file for Esim is same with that for CSM and spice simulation
 The output of Hspice simulation is saved in output folder with .out suffix.
+
+### plot (waveform plotting tool)
+The plot is to readout the results of hspice and CSM simulation. It is a class so user can call it like this:
+
+    ```sh
+    pp = plot("config")
+    pp.auto_plot()
+    ```
+
+Note: the pp and config file name is arbitrary. 
+
+Requirement:
+Your need to install 'matplotlib' for python to run the plot function. Use the following command in your ssh terminal:
+
+   ```sh
+   pip install matplotlib
+   ```
+
+Explanation: 
+The plot first reads the .wv file of spice and csm, then by calling function drop_resolution(), it will drop down the resolution of data to make the plotting fast. Then it will plot all saved nodes of csm and spice and put them into one image with different labels.
+    
+The config file for plot is same with that for CSM and spice simulation
 
 ### Look Up Tables (LUTs)
 User does NOT interact with this folder.
