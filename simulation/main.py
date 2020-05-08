@@ -1,11 +1,11 @@
 
-
 import pdb
 import sys
 import argparse
 import importlib
 
 import classes
+from plot import *
 from SpiceSim import *
 from Esim import *
 from func_spice import print_header
@@ -17,7 +17,8 @@ if __name__ == '__main__':
     if -func or -f == "spice": do spice simulation 
     if -func or -f == "esim-all": do csm-sim and spice-sim and report esim
     if -func or -f == "esim": calculate esim, given csm and spice waveforms
-    a new argument -plot which plots the results, diff for diff -func
+    
+    if -plot == "1": plot and save waveform of CSM and Hspice into image folder
     '''
     parser = argparse.ArgumentParser()
     parser.add_argument('-func', type=str, required=True, help='Function')
@@ -56,7 +57,14 @@ if __name__ == '__main__':
         es = Esim(args.conf[:-3])
         es.data_extract()
         es.Esim_calculate()
+    elif args.func == "pass":
+        pass
     else:
         print "function argument not found"
 
+    if args.plot == True:
+        es = Esim(args.conf[:-3])
+        es.data_extract()
+        pp = plot(args.conf[:-3])
+        pp.auto_plot()
 

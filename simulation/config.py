@@ -30,7 +30,7 @@ PI_signal_dict = {
     "N2":Signal(mode = "constant", constant=0.0),
     "N3":Signal(mode = "constant", constant=0.7),
     "N6":Signal(mode = "constant", constant=0.0),
-    "N7":Signal(mode="ramp_lh", param={"vdd": 0.7, "t_0": 5e-12, "t_lh": 50e-12})}
+    "N7":Signal(mode="pulse", param={"V1": 0, "V2": 0.7, "TD": 5e-12, "TR": 1e-12, "TF": 1e-12, "PW": 50e-12, "PER": 100e-12})}
 
 
 # capacitive loading of primary output
@@ -43,7 +43,7 @@ cap_value = 1e-16
 #final_output_load = {"N22": 1e-16, "N23": 1e-16}
 
 # saving options
-save_file_dir = "./output_csm/voltage_save.csv"
+save_file_dir = "./output_csm/" + CKT + "_voltage_save.csv"
 voltage_nodes_to_save = ["N22", "N23"]
 
 SPICE_OUT_DIR="./output_spice/"

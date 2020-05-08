@@ -7,10 +7,10 @@ import numpy as np
 import itertools
 
 
-def _print_dict_csm(r, gate="INV"):
+# def _print_dict_csm(r, gate="INV"):
     # {'I_out_DC': 9.5782e-06, 'CI': 3.0417e-17, 'CO': -1.2112465e-17, 'CM': 3.003316e-17}
-    if gate == "INV":
-        print "I_out_DC={:.4e} \t CI={:.4e} \t CO={:0.4e} \t CM={:.4e}".format(r["I_out_DC"], r["CI"], r["CO"], r["CM"])
+    # if gate == "INV":
+        # print "I_out_DC={:.4e} \t CI={:.4e} \t CO={:0.4e} \t CM={:.4e}".format(r["I_out_DC"], r["CI"], r["CO"], r["CM"])
 
 def _trick_char_gate(temp, path):
 
@@ -109,8 +109,6 @@ class LUT:
             print "Values:\n", val, "\n"
             print "IDX:\n", indices, "\n"
             print "Slope: \n", slope, "\n"
-            #dim0 = Vin
-            #dim1 = Vout
             Iout = self.lut["I_out_DC"]
             p00 = Iout[indices[0][0], indices[1][0]]
             p01 = Iout[indices[0][1], indices[1][0]]
@@ -128,7 +126,7 @@ class LUT:
         _slope = np.array([[1-x for x in slope], slope]).T
 
         _slope = _slope.tolist()
-        #slope = np.round(slope, 3).tolist()
+        #_slope = np.round(slope, 3).tolist()
         indices = indices.tolist()
         slope_expand = np.array(list(itertools.product(*_slope)))
         slope_coef = np.prod(slope_expand, axis=1)
@@ -276,16 +274,17 @@ class INV(Gate):
 
         # update input net for cap value change.
         self.n_in.cap_load_dict[self.name] = r["CI"]
-        print "{:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f}".format(Vin, Vin_next, d_Vin, Vout, d_Vout)
-        if Vout > 0.67 :
-            _print_dict_csm(r, "INV")
-            print "CM * d_Vin  = {:.5e}".format(r["CM"] * d_Vin)
-            print "Io * t_step = {:.5e}".format(r["I_out_DC"] * t_step)
-            print "\n"
-            if d_Vout < 0.001:
-                val = [Vin, Vout]
+        # below is for debugging
+        # print "{:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f}".format(Vin, Vin_next, d_Vin, Vout, d_Vout)
+        # if Vout > 0.67 :
+            # _print_dict_csm(r, "INV")
+            # print "CM * d_Vin  = {:.5e}".format(r["CM"] * d_Vin)
+            # print "Io * t_step = {:.5e}".format(r["I_out_DC"] * t_step)
+            # print "\n"
+            # if d_Vout < 0.001:
+                # val = [Vin, Vout]
                 # self.lut.get_val(val, debug=True)
-                pdb.set_trace()
+                # pdb.set_trace()
 
 
     def update_level(self): # returns a boolean, if out net level is updated.
@@ -637,7 +636,6 @@ class Circuit:
             # after simulation, check if all nets besides PI have settled
             for each_net in (self.int_nodes + self.out_nodes):
                 dV_of_this_net = self.nets_dict[each_net].voltage - self.nets_dict[each_net].voltage_just_now
-                # slope = dV_of_this_net/t_step
                 slope = abs(dV_of_this_net/t_step)
                 if (slope > initial_voltage_settle_th):
                     all_nets_settled = False

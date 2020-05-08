@@ -156,7 +156,35 @@ class Signal:
             self.input_array = None
 
     def get_val(self, t):
-        if self.mode == "ramp_lh":
+        if self.mode == "pulse":
+            '''
+            param = {"V1": initial value
+                     "V2": pulse value
+                     "TD": initial delay for the first pulse
+                     "TR": rise time
+                     "TF": fall time
+                     "PW": pulse width
+                     "PER": period}
+            '''
+            V1 = self.param["V1"]
+            V2 = self.param["V2"]
+            TD = self.param["TD"]
+            TR = self.param["TR"]
+            TF = self.param["TF"]
+            PW = self.param["PW"]
+            PER = self.param["PER"]
+            t_diff = (t - TD) % PER
+            if t < TD:
+                sig = V1
+            elif t_diff < TR:
+                sig = V1 + (V2 - V1) * t_diff / TR
+            elif t_diff < TR + PW:
+                sig = V2
+            elif t_diff < TR + PW + TF:
+                sig = V2 + (V1 - V2) * (t_diff - TR - PW) / TF
+            else:
+                sig = V1
+        elif self.mode == "ramp_lh":
             # 0 to vdd ramp, start at time t_0, rise finish at time config.T_DR_TRAN
             if t < self.param["t_0"]:
                 sig = 0
@@ -165,7 +193,6 @@ class Signal:
                 sig = self.param["vdd"] * (t - self.param["t_0"]) / self.param["t_lh"]
             else:
                 sig = self.param["vdd"]
-            return sig
         elif self.mode == "ramp_hl":
             if t < self.param["t_0"]:
                 sig = self.param["vdd"]
@@ -173,15 +200,12 @@ class Signal:
                 sig = self.param["vdd"] * (1 - (t - self.param["t_0"]) / self.param["t_lh"])
             else:
                 sig = 0
-            return sig
         elif self.mode == "from_file":
             t_step = 0.01e-12  # should be the t_step of input file
 
             index = int(np.round(t / t_step, 3))
 
             sig = self.input_array[1][index]
-            return sig
-
         elif self.mode == "constant":
             sig = self.constant
-            return sig
+        return sig

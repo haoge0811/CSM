@@ -8,10 +8,9 @@ class plot:
     def __init__(self, config_file):
         self.config = importlib.import_module(config_file)
         self.sp_data_dir = self.config.SP_DATA_DIR
-        self.csm_data_dir = self.config.CSM_DATA_DIR
         self.sp_out_path = self.sp_data_dir + self.config.CKT + '.out'
         self.sp_wv_path = self.sp_out_path.replace('.out', '.wv')
-        self.csm_wv_path = self.csm_data_dir + 'voltage_save.csv'
+        self.csm_wv_path = self.config.save_file_dir
         # list the file to be ploted here, then go to bottom to plot to your liking.
         # can use wildcard here e.g. *NAND2* glob is used to expand wildcard
         self.files = [self.csm_wv_path, self.sp_wv_path]
@@ -71,9 +70,15 @@ class plot:
         
         plt.xlabel('time')
         plt.ylabel('voltages')
-        plt.title('Comparation of CSM and Hspice simulation for ' + self.config.CKT)
+        plt.title(self.config.CKT + '_' + self.config.TECH + "VL" + \
+                    str(self.config.VL) + "_VH" + str(self.config.VH) + "_VSTEP" + \
+                    str(self.config.VSTEP) + "_P" + str(self.config.PROCESS_VARIATION) + "_V" \
+                    + str(self.config.VDD) + "_T" + str(self.config.TEMPERATURE))
         plt.legend()
-        plt.show()
+        plt.savefig('image/' + self.config.CKT + '_' + self.config.TECH + "VL" + \
+                    str(self.config.VL) + "_VH" + str(self.config.VH) + "_VSTEP" + \
+                    str(self.config.VSTEP) + "_P" + str(self.config.PROCESS_VARIATION) + "_V" \
+                    + str(self.config.VDD) + "_T" + str(self.config.TEMPERATURE) + '.png')
 
 # pp = plot("config_inv")
 # pp.auto_plot()

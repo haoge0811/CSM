@@ -11,8 +11,7 @@ class Esim:
         self.csm_data_dir = self.config.CSM_DATA_DIR
         self.sp_out_path = self.sp_data_dir + self.config.CKT + '.out'
         self.sp_wv_path = self.sp_out_path.replace('.out', '.wv')
-        # should this csm out name hardcoded ??
-        self.csm_wv_path = self.csm_data_dir + 'voltage_save.csv'
+        self.csm_wv_path = self.config.save_file_dir
         
     def data_extract(self):
         '''extract data from .out file of spice simulation into .wv'''

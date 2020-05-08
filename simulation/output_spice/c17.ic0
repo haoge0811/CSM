@@ -1,0 +1,32 @@
+* "simulator" "HSPICE" 
+* "version" "O-2018.09-SP2-2 linux64"
+* "format" "HSP"
+* "rundate" "16:52:57 05/07/2020 "
+* "netlist" "c17.sp "
+* "runtitle" "* eda yan"
+* time =    0.            
+* temperature =   25.0000        
+*** BEGIN: Saved Operating Point ***                     
+.option 
++ gmindc=   1.0000p       
+.nodeset
++ hi = 700.0000m       
++ lo =   0.            
++ n1 = 700.0000m       
++ n10 = 126.2515n       
++ n11 = 699.9999m       
++ n16 = 699.9999m       
++ n19 = 699.9999m       
++ n2 =   0.            
++ n22 = 700.0000m       
++ n23 = 126.1730n       
++ n3 = 700.0000m       
++ n6 =   0.            
++ n7 =   0.            
++ xnand2_1.n1 =  82.2154n       
++ xnand2_2.n1 = 649.8246m       
++ xnand2_3.n1 =  31.6057n       
++ xnand2_4.n1 = 649.8246m       
++ xnand2_5.n1 =  31.6058n       
++ xnand2_6.n1 =  82.1762n       
+***   END: Saved Operating Point ***                     

@@ -81,15 +81,25 @@ class SpiceSim:
         return load_str
         
     def gen_input_signals(self):
-        #generate input signals
-        #use Piecewise Linear Source for ramp_lh or ramp_hl signals, and use DC Source for constant signals
+        '''
+        generate input signals
+        use Piecewise Linear Source for ramp_lh or ramp_hl signals
+        use pulse for pulse signals
+        use DC Source for constant signals
+        '''
         input_signals = self.config.PI_signal_dict
         input_str = []
         input_str.append("* input signals\n")
         for key in input_signals:
             net_name = key
             signal = input_signals[key]
-            if signal.mode == "constant":
+            if signal.mode == "pulse":
+                input_str.append("V" + net_name + " " + net_name + " 0 " + "pulse(" +\
+                                 str(signal.param["V1"]) + " " + str(signal.param["V2"]) + " " +\
+                                 float2string(signal.param["TD"]) + " " + float2string(signal.param["TR"]) + " " +\
+                                 float2string(signal.param["TF"]) + " " + float2string(signal.param["PW"]) + " " +\
+                                 float2string(signal.param["PER"]) + ")\n")
+            elif signal.mode == "constant":
                 input_str.append("V" + net_name + " " + net_name + " 0 " + str(signal.constant) + "\n")
             elif signal.mode == "ramp_lh":
                 input_str.append("V" + net_name + " " + net_name + " 0 " + "pwl "\
