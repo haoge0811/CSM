@@ -12,25 +12,25 @@ CKT = "c17"
 # if LUT not exist, create it using characterzation process
 LUT_bin_dir = "/home/home2/visiting/mitsushij/data/CSM_data/LUT_bin/"
 # LUT selection. the following parameter determins which CSM model (LUT) will be loaded for simulation.
-TECH = "FINFET_7nm_LSTP"
+TECH = "FINFET_7nm_HP"
 VDD = 0.7 # this is the vdd used during the creation of CSM model. it has nothing to do with the simulation vdd.
 # in fact, there is no way to control the simulation vdd here. user should just pick different CSM model from LUT bin
 VL = -0.14
 VH = 0.84
-VSTEP = 0.05
+VSTEP = 0.1
 PROCESS_VARIATION = 1.0 # process variation multiplier
 TEMPERATURE = 25.0
 # simulation parameters
-T_TOT = 100e-12
-T_STEP = 0.01e-12
+T_TOT = 1e-9
+T_STEP = 0.1e-12
 
 # primary inputs
 PI_signal_dict = {
-    "N1":Signal(mode = "constant", constant=0.7),
-    "N2":Signal(mode = "constant", constant=0.0),
-    "N3":Signal(mode = "constant", constant=0.7),
-    "N6":Signal(mode = "constant", constant=0.0),
-    "N7":Signal(mode="pulse", param={"V1": 0, "V2": 0.7, "TD": 5e-12, "TR": 1e-12, "TF": 1e-12, "PW": 50e-12, "PER": 100e-12})}
+    "N1":Signal(mode="pulse", param={"V1": 0, "V2": 0.7, "TD": 1e-12, "TR": 20e-12, "TF": 20e-12, "PW": 1.6e-9, "PER": 3.2e-9}),
+    "N2":Signal(mode="pulse", param={"V1": 0, "V2": 0.7, "TD": 1e-12, "TR": 20e-12, "TF": 20e-12, "PW": 800e-12, "PER": 1.6e-9}),
+    "N3":Signal(mode="pulse", param={"V1": 0, "V2": 0.7, "TD": 1e-12, "TR": 20e-12, "TF": 20e-12, "PW": 400e-12, "PER": 800e-12}),
+    "N6":Signal(mode="pulse", param={"V1": 0, "V2": 0.7, "TD": 1e-12, "TR": 20e-12, "TF": 20e-12, "PW": 200e-12, "PER": 400e-12}),
+    "N7":Signal(mode="pulse", param={"V1": 0, "V2": 0.7, "TD": 1e-12, "TR": 20e-12, "TF": 20e-12, "PW": 100e-12, "PER": 200e-12})}
 
 
 # capacitive loading of primary output
@@ -43,7 +43,9 @@ cap_value = 1e-16
 #final_output_load = {"N22": 1e-16, "N23": 1e-16}
 
 # saving options
-save_file_dir = "./output_csm/" + CKT + "_voltage_save.csv"
+save_file_path = "./output_csm/" + CKT + '_' + TECH + "_VL" + str(VL) + "_VH" + str(VH) + "_VSTEP" + \
+                    str(VSTEP) + "_P" + str(PROCESS_VARIATION) + "_V" + str(VDD) + "_T" + str(TEMPERATURE) + \
+                    "_TSTEP" + str(T_STEP) + "_voltage_save.csv"
 voltage_nodes_to_save = ["N22", "N23"]
 
 SPICE_OUT_DIR="./output_spice/"

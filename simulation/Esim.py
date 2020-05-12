@@ -9,9 +9,12 @@ class Esim:
         self.config = importlib.import_module(config_file)
         self.sp_data_dir = self.config.SP_DATA_DIR
         self.csm_data_dir = self.config.CSM_DATA_DIR
-        self.sp_out_path = self.sp_data_dir + self.config.CKT + '.out'
+        self.sp_out_path = self.sp_data_dir + self.config.CKT + '_' + self.config.TECH + "_VL" + \
+                            str(self.config.VL) + "_VH" + str(self.config.VH) + "_VSTEP" + \
+                            str(self.config.VSTEP) + "_P" + str(self.config.PROCESS_VARIATION) + "_V" \
+                            + str(self.config.VDD) + "_T" + str(self.config.TEMPERATURE) + "_TSTEP" + str(self.config.T_STEP) + '.out'
         self.sp_wv_path = self.sp_out_path.replace('.out', '.wv')
-        self.csm_wv_path = self.config.save_file_dir
+        self.csm_wv_path = self.config.save_file_path
         
     def data_extract(self):
         '''extract data from .out file of spice simulation into .wv'''
@@ -80,6 +83,11 @@ class Esim:
         # convert to numpy array
         csm_voltages = np.asarray(csm_voltages)
         spice_voltages = np.asarray(spice_voltages)
+        if not np.shape(csm_voltages) == np.shape(spice_voltages):
+            if np.shape(csm_voltages)[0] > np.shape(spice_voltages)[0]:
+                csm_voltages = csm_voltages[:-1]
+            else:
+                spice_voltages = spice_voltages[:-1]
 
         # mean of absolute point wise difference, nomalize by vdd value
         vdd = self.config.VDD
@@ -90,9 +98,16 @@ class Esim:
 
         similarity_Vout = [x for x in range(num_of_voltage)]
         # best case mean = 0, similarity = 1. worst case, every point differs by vdd, similarity = 0.
+        
+        esim_out_path = "output_esim/" + self.config.CKT + '_' + self.config.TECH + "_VL" + \
+                    str(self.config.VL) + "_VH" + str(self.config.VH) + "_VSTEP" + \
+                    str(self.config.VSTEP) + "_P" + str(self.config.PROCESS_VARIATION) + "_V" \
+                    + str(self.config.VDD) + "_T" + str(self.config.TEMPERATURE) + "_TSTEP" + str(self.config.T_STEP) + '.esim'
+        f = open(esim_out_path, "w")
         for i in range(num_of_voltage):
             similarity_Vout[i]  = 1 - mean_Vout[i]/vdd
             print("V" + self.config.voltage_nodes_to_save[i] + " similarity = %.4f%%\n" % (similarity_Vout[i]*100))
+            f.write("V" + self.config.voltage_nodes_to_save[i] + " similarity = %.4f%%\n" % (similarity_Vout[i]*100))
 
     def Esim_calculate_without_config(self, wv_1, wv_2, vdd):
         '''Calculate wave similarity given the path of any two waveform data files and vdd'''

@@ -2,7 +2,7 @@
 * USC - SPORT LAB
 .option NOMOD
 .global vdd
-.param vdd=0.7
+.param vdd=0.9
 .include './gate_inventory_gen.sp'
 
 
@@ -21,14 +21,14 @@ cL1 N22 0 1e-16
 cL2 N23 0 1e-16
 
 * input signals
-VN1 N1 0 0.7
-VN2 N2 0 0.0
-VN3 N3 0 0.7
-VN6 N6 0 0.0
-VN7 N7 0 pulse(0 0.7 5p 1p 1p 50.0p 100.0p)
+VN1 N1 0 pulse(0 0.7 1p 20.0p 20.0p 1.6e-09 3.2e-09)
+VN2 N2 0 pulse(0 0.7 1p 20.0p 20.0p 800.0p 1.6e-09)
+VN3 N3 0 pulse(0 0.7 1p 20.0p 20.0p 400.0p 800.0p)
+VN6 N6 0 pulse(0 0.7 1p 20.0p 20.0p 200.0p 400.0p)
+VN7 N7 0 pulse(0 0.7 1p 20.0p 20.0p 100.0p 200.0p)
 
 
-.tran 10.0f 100.0p
+.tran 1p 1e-09
 .op
 .print v(N22) v(N23) 
 .end

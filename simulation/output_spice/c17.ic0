@@ -1,7 +1,7 @@
 * "simulator" "HSPICE" 
 * "version" "O-2018.09-SP2-2 linux64"
 * "format" "HSP"
-* "rundate" "16:52:57 05/07/2020 "
+* "rundate" "02:05:43 05/12/2020 "
 * "netlist" "c17.sp "
 * "runtitle" "* eda yan"
 * time =    0.            
@@ -10,23 +10,23 @@
 .option 
 + gmindc=   1.0000p       
 .nodeset
-+ hi = 700.0000m       
++ hi = 900.0000m       
 + lo =   0.            
-+ n1 = 700.0000m       
-+ n10 = 126.2515n       
-+ n11 = 699.9999m       
-+ n16 = 699.9999m       
-+ n19 = 699.9999m       
++ n1 =   0.            
++ n10 = 899.9938m       
++ n11 = 899.9939m       
++ n16 = 899.9799m       
++ n19 = 899.9891m       
 + n2 =   0.            
-+ n22 = 700.0000m       
-+ n23 = 126.1730n       
-+ n3 = 700.0000m       
++ n22 =   5.2101u       
++ n23 =   5.2098u       
++ n3 =   0.            
 + n6 =   0.            
 + n7 =   0.            
-+ xnand2_1.n1 =  82.2154n       
-+ xnand2_2.n1 = 649.8246m       
-+ xnand2_3.n1 =  31.6057n       
-+ xnand2_4.n1 = 649.8246m       
-+ xnand2_5.n1 =  31.6058n       
-+ xnand2_6.n1 =  82.1762n       
++ xnand2_1.n1 =  52.9516m       
++ xnand2_2.n1 =  52.9516m       
++ xnand2_3.n1 =   1.2445u       
++ xnand2_4.n1 = 622.4075m       
++ xnand2_5.n1 =   3.8286u       
++ xnand2_6.n1 =   3.8283u       
 ***   END: Saved Operating Point ***                     

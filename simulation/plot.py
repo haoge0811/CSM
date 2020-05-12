@@ -8,9 +8,11 @@ class plot:
     def __init__(self, config_file):
         self.config = importlib.import_module(config_file)
         self.sp_data_dir = self.config.SP_DATA_DIR
-        self.sp_out_path = self.sp_data_dir + self.config.CKT + '.out'
-        self.sp_wv_path = self.sp_out_path.replace('.out', '.wv')
-        self.csm_wv_path = self.config.save_file_dir
+        self.sp_wv_path = self.sp_data_dir + self.config.CKT + '_' + self.config.TECH + "_VL" + \
+                            str(self.config.VL) + "_VH" + str(self.config.VH) + "_VSTEP" + \
+                            str(self.config.VSTEP) + "_P" + str(self.config.PROCESS_VARIATION) + "_V" \
+                            + str(self.config.VDD) + "_T" + str(self.config.TEMPERATURE) + "_TSTEP" + str(self.config.T_STEP) + '.wv'
+        self.csm_wv_path = self.config.save_file_path
         # list the file to be ploted here, then go to bottom to plot to your liking.
         # can use wildcard here e.g. *NAND2* glob is used to expand wildcard
         self.files = [self.csm_wv_path, self.sp_wv_path]
@@ -54,6 +56,7 @@ class plot:
 
             data_dict[each_file] = data
         
+        print "auto plot and save..."
         # CSM plotting
         CSM_plot_nodes = self.config.voltage_nodes_to_save
         for a_signal in CSM_plot_nodes:
@@ -70,15 +73,15 @@ class plot:
         
         plt.xlabel('time')
         plt.ylabel('voltages')
-        plt.title(self.config.CKT + '_' + self.config.TECH + "VL" + \
+        plt.title(self.config.CKT + '_' + self.config.TECH + "_VL" + \
                     str(self.config.VL) + "_VH" + str(self.config.VH) + "_VSTEP" + \
                     str(self.config.VSTEP) + "_P" + str(self.config.PROCESS_VARIATION) + "_V" \
                     + str(self.config.VDD) + "_T" + str(self.config.TEMPERATURE))
         plt.legend()
-        plt.savefig('image/' + self.config.CKT + '_' + self.config.TECH + "VL" + \
+        plt.savefig('image/' + self.config.CKT + '_' + self.config.TECH + "_VL" + \
                     str(self.config.VL) + "_VH" + str(self.config.VH) + "_VSTEP" + \
                     str(self.config.VSTEP) + "_P" + str(self.config.PROCESS_VARIATION) + "_V" \
-                    + str(self.config.VDD) + "_T" + str(self.config.TEMPERATURE) + '.png')
-
+                    + str(self.config.VDD) + "_T" + str(self.config.TEMPERATURE) + "_TSTEP" + str(self.config.T_STEP) + '.pdf')
+        print "auto plot and save successfully"
 # pp = plot("config_inv")
 # pp.auto_plot()

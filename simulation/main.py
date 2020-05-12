@@ -17,6 +17,7 @@ if __name__ == '__main__':
     if -func or -f == "spice": do spice simulation 
     if -func or -f == "esim-all": do csm-sim and spice-sim and report esim
     if -func or -f == "esim": calculate esim, given csm and spice waveforms
+	if -func or -f == "pass": no function called, this is used for plotting
     
     if -plot == "1": plot and save waveform of CSM and Hspice into image folder
     '''

@@ -121,7 +121,7 @@ class LUT:
                 print p
 
             print "\n\n"
-            pdb.set_trace()
+            #pdb.set_trace()
 
         _slope = np.array([[1-x for x in slope], slope]).T
 
@@ -134,6 +134,9 @@ class LUT:
 
         for param in self.lut.keys():
             dd = self.lut[param]
+            # print param
+            # print dd
+            # print indices
             mat_expand = np.array([dd[x] for x in list(itertools.product(*indices))])
             res[param] = np.sum(slope_coef* mat_expand)
         
@@ -141,7 +144,7 @@ class LUT:
             print "\n", slope, "\n"
             print "\n", slope_expand
             print "\n", slope_coef
-            pdb.set_trace()
+            #pdb.set_trace()
 
         return(res)
 
@@ -343,7 +346,8 @@ class NAND2(Gate):
 
         # get internal node voltage also
         Vn1 = self.n_int_v
-
+        # print self.name
+        # print "{:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f}".format(Vna, Vna_next, Vnb, Vnb_next, Vn1, Vout)
         # step 3, apply csm step simulation
         r = self.lut.get_val([Vna, Vnb, Vn1, Vout])
 
@@ -687,16 +691,17 @@ class Circuit:
         t_step = self.config.T_STEP
         signal = self.config.PI_signal_dict
 
-        save_file = open(self.config.save_file_dir, "w")
+        save_file = open(self.config.save_file_path, "w")
         save_file.write("# time")
         for each_net in self.config.voltage_nodes_to_save:
             save_file.write(" " + each_net)
         save_file.write("\n")
 
         print "simulating..."
-        for step_number in range(int(t_tot / t_step)):
+        for step_number in range(int(np.ceil(t_tot / t_step))):
             t = step_number * t_step
             # t_ps = t * 1e12  # just for readability
+            # print "t = ", t
             self.simulate_step(t)
             
             # save voltage of chosen nets

@@ -188,7 +188,10 @@ class SpiceSim:
         self.gen_spice_from_verilog()
         owd = os.getcwd()
         os.chdir(self.out_dir)
-        os.system("hspice " + self.config.CKT + ".sp > " + self.config.CKT + ".out")
+        os.system("hspice " + self.config.CKT + ".sp > " + self.config.CKT + '_' + self.config.TECH + "_VL" + \
+                    str(self.config.VL) + "_VH" + str(self.config.VH) + "_VSTEP" + \
+                    str(self.config.VSTEP) + "_P" + str(self.config.PROCESS_VARIATION) + "_V" \
+                    + str(self.config.VDD) + "_T" + str(self.config.TEMPERATURE) + "_TSTEP" + str(self.config.T_STEP) + ".out")
         os.chdir(owd)
 
 #ss = SpiceSim("config")
