@@ -1,0 +1,17 @@
+* "simulator" "HSPICE" 
+* "version" "O-2018.09-SP2-2 linux64"
+* "format" "HSP"
+* "rundate" "11:57:40 05/18/2020 "
+* "netlist" "inv.sp "
+* "runtitle" "* eda yan"
+* time =    0.            
+* temperature =   25.0000        
+*** BEGIN: Saved Operating Point ***                     
+.option 
++ gmindc=   1.0000p       
+.nodeset
++ hi = 700.0000m       
++ lo =   0.            
++ n1 =   0.            
++ n2 = 699.8552m       
+***   END: Saved Operating Point ***                     

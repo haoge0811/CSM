@@ -133,10 +133,12 @@ class LUT:
         res = dict()
 
         for param in self.lut.keys():
+            if param == "header_info":
+                continue
             dd = self.lut[param]
             # print param
             # print dd
-            # print indices
+            # print "indices:" , indices
             mat_expand = np.array([dd[x] for x in list(itertools.product(*indices))])
             res[param] = np.sum(slope_coef* mat_expand)
         

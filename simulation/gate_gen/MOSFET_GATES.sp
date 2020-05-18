@@ -1,9 +1,9 @@
 .include '$$library'
 
-.subckt INV hi lo in out
+.subckt NOT1 hi lo in out
 mp1 (out in hi hi)  pmos w=$$w_p     l=$$lg_p 
 mn1 (out in lo lo)  nmos w=$$w_n     l=$$lg_n
-.ends INV
+.ends NOT1
 
 .subckt NOR2 hi lo in1 in2 n1 out
 mp2 (n1  in2 hi hi) pmos w='2*$$w_p' l=$$lg_p

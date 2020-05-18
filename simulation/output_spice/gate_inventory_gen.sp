@@ -1,9 +1,9 @@
-.include '/home/home2/visiting/mitsushij/workspace/CSM/simulation/../data/modelfiles/PTM_MOSFET/16nm_LP.pm'
+.include '/home/home2/visiting/mitsushij/workspace/CSM/simulation/../data/modelfiles/PTM_MOSFET/16nm_HP.pm'
 
-.subckt INV hi lo in out
+.subckt NOT1 hi lo in out
 mp1 (out in hi hi)  pmos w=3.2e-08     l=1.6e-08 
 mn1 (out in lo lo)  nmos w=1.6e-08     l=1.6e-08
-.ends INV
+.ends NOT1
 
 .subckt NOR2 hi lo in1 in2 out
 mp2 (n1  in2 hi hi) pmos w='2*3.2e-08' l=1.6e-08

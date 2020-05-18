@@ -1,9 +1,9 @@
 .include '$$library'
 
-.subckt INV hi lo in out 
+.subckt NOT1 hi lo in out 
 mp1 (out in hi hi)  pfet nfin=$$nfin l=$$lg_p  
 mn1 (out in lo lo)  nfet nfin=$$nfin l=$$lg_n  
-.ends INV
+.ends NOT1
 
 .subckt NOR2 hi lo in1 in2 n1 out
 mp2 (n1  in2 hi hi) pfet nfin=$$nfin l=$$lg_p 
