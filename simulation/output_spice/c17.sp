@@ -27,6 +27,8 @@ VN3 N3 0 pulse(0 0.7 1p 20.0p 20.0p 400.0p 800.0p)
 VN6 N6 0 pulse(0 0.7 1p 20.0p 20.0p 200.0p 400.0p)
 VN7 N7 0 pulse(0 0.7 1p 20.0p 20.0p 100.0p 200.0p)
 
+* finding zeros and poles
+.PZ N1 N2 N3 N4 VOL PZ
 
 .tran 1p 1e-09
 .op

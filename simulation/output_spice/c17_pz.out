@@ -1,0 +1,33 @@
+Using: /opt/synopsys/hspice/O-2018.09-SP2-2/hspice/linux64/hspice c17.sp
+ ****** HSPICE -- O-2018.09-SP2-2 linux64 (May  9 2019) ******                  
+  Copyright (c) 1986 - 2020 by Synopsys, Inc. All Rights Reserved.              
+  This software and the associated documentation are proprietary
+  to Synopsys, Inc. This software may only be used in accordance
+  with the terms and conditions of a written license agreement with
+  Synopsys, Inc. All other use, reproduction, or distribution of
+  this software is strictly prohibited.
+  Input File: c17.sp                                                            
+  Command line options: /opt/synopsys/hspice/O-2018.09-SP2-2/hspice/linux64/hspice c17.sp
+  Start time: Sat May 30 12:02:30 2020
+ lic:  
+ lic: FLEXlm: SDK_11.7.3 
+ lic: USER:   mitsushij            HOSTNAME: sahand 
+ lic: HOSTID: "80c16e72eecb"       PID:      44590 
+ lic: Using FLEXlm license file: 
+ lic: 1720@ics-lic2.usc.edu 
+ lic: Checkout 1 hspice 
+ lic: License/Maintenance for hspice will expire on 30-jun-2021/2019.06 
+ lic: 1(in_use)/50(total) FLOATING license(s) on SERVER 1720@ics-lic2.usc.edu 
+ lic:   
+  **error** (c17.sp:31) syntax error at or before "N1" "N2" "N3" "N4" "VOL" "PZ" 
+
+Syntax reference: 
+Syntax
+.PZ output input
+.PZ ov srcname
+
+
+
+               ***** job aborted
+ lic: Release hspice token(s) 
+ lic: total license checkout elapse time:        0.13(s)

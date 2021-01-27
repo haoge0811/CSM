@@ -1,17 +1,19 @@
 # Author: haoge <haoge@usc.edu> at USC SPORT Lab
+# Modified by Eda
 import os
 import pickle
 
 # convention: variables use import file. functions use from file import *
 import config
 from functions import *
-
-# example input
-# GATE_NAME = "INV"
-# VSTEP = 0.1 # resolution of LUT
-# LIB_DIR = "../modelfiles/PTM_MOSFET/16nm_LP_TEMPLATE.pm" # input library
-# VDD = 0.9
-# TEMPERATURE = 25
+'''
+example input
+GATE_NAME = "INV"
+VSTEP = 0.1 # resolution of LUT
+LIB_DIR = "../modelfiles/PTM_MOSFET/16nm_LP_TEMPLATE.pm" # input library
+VDD = 0.9
+TEMPERATURE = 25
+'''
 def main(GATE_NAME, VSTEP, LIB_DIR, VDD, TEMPERATURE, return_unique_id = 0):
     #################################### extract and setup some parameters ##########################################
     # extract library related parameters from library header section
@@ -39,8 +41,8 @@ def main(GATE_NAME, VSTEP, LIB_DIR, VDD, TEMPERATURE, return_unique_id = 0):
     # extraction end
 
     owd = os.getcwd() # record original working directory
-    sweep_low  = -(VDD * config.VOLTAGE_OVERSCAN)  # V_L
-    sweep_high = VDD * (1+config.VOLTAGE_OVERSCAN) # V_H
+    sweep_low  = 0 - config.VOLTAGE_OVERSCAN  # V_L
+    sweep_high = VDD + config.VOLTAGE_OVERSCAN # V_H
 
     print("Characterising for PVT value %.4f %.4f %.1fC" % (Vth_multiplier, VDD, TEMPERATURE))
     unique_identifier = DEVICE_NAME +"_"+ TECH_NAME +"_"+ GATE_NAME \
@@ -128,12 +130,12 @@ def main(GATE_NAME, VSTEP, LIB_DIR, VDD, TEMPERATURE, return_unique_id = 0):
                       +config.spice_raw_char_out_dir + unique_identifier +"_"+component+".raw")
 
         DC_mode = 1 if "DC" in component else 0
-        if config.save_spic_processed_char_output == 1: # check/create processed output folder
+        if config.save_spice_processed_char_output == 1: # check/create processed output folder
             create_dir_if_not_exist(config.spice_processed_char_out_dir)
         flat_data = read_spice(spice_raw_out=config.temp_folder+"spice_raw.out",
                                DC_mode=DC_mode, # depends on analysis type
                                spice_extend_res=config.SP_EXTEND_RES,
-                               save_processed_out=config.save_spic_processed_char_output,
+                               save_processed_out=config.save_spice_processed_char_output,
                                save_dir=config.spice_processed_char_out_dir \
                                         + unique_identifier +"_"+component+".pro")
 
